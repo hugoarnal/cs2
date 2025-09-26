@@ -5,29 +5,43 @@ const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
 
 // TODO: replace all bools by Result
+// TODO: add logging
 
-fn pull_repo(program: &str, link: &str, path: &Path) -> bool {
-    let temp_path = format!("/tmp/cs2-{}", program);
+fn get_temp_path(package: &str) -> String {
+    format!("/tmp/cs2-{}", package)
+}
 
-    let final_path = match path.to_str() {
-        Some(p) => p,
-        None => return false,
-    };
+fn get_final_path(package: &str) -> String {
+    format!("/usr/local/share/cs2/{}", package)
+}
 
+fn pull_repo(link: &str, temp_path: &str) -> bool {
     let clone_command = match Command::new("git")
-        .args(["clone", link, temp_path.as_str()])
+        .args(["clone", link, temp_path])
         .status()
     {
         Ok(status) => status,
         Err(_) => return false,
     };
 
-    if !clone_command.success() || path.exists() {
+    if !clone_command.success() {
+        return false;
+    }
+    return true;
+}
+
+fn move_to_final_path(temp_path: &str, final_path: &Path) -> bool {
+    let final_path_str = match final_path.to_str() {
+        Some(p) => p,
+        None => return false,
+    };
+
+    if final_path.exists() {
         return false;
     }
 
     match Command::new("sudo")
-        .args(["mv", temp_path.as_str(), final_path])
+        .args(["mv", temp_path, final_path_str])
         .status()
     {
         Ok(status) => {
@@ -37,7 +51,6 @@ fn pull_repo(program: &str, link: &str, path: &Path) -> bool {
         }
         Err(_) => return false,
     };
-
     return true;
 }
 
@@ -81,22 +94,52 @@ fn verify_clang_version() -> bool {
 }
 
 fn epiclang() -> bool {
-    if !pull_repo(
-        "epiclang",
-        EPICLANG_REPO,
-        Path::new("/usr/local/share/cs2/epiclang"),
-    ) {
+    let package = "epiclang";
+    let temp_path = get_temp_path(package);
+
+    if !pull_repo(EPICLANG_REPO, temp_path.as_str()) {
         return false;
     }
+
+    match Command::new("chmod")
+        .args(["+x", format!("{}/manual-install.sh", temp_path).as_str()])
+        .status()
+    {
+        Ok(status) => {
+            if !status.success() {
+                return false;
+            }
+        }
+        Err(_) => return false,
+    };
+
+    move_to_final_path(
+        temp_path.as_str(),
+        Path::new(&get_final_path(package)),
+    );
+
+    match Command::new("sh")
+        .args([
+            "-c",
+            "cd /usr/local/share/cs2/epiclang && sudo ./manual-install.sh",
+        ])
+        .status()
+    {
+        Ok(status) => {
+            if !status.success() {
+                return false;
+            }
+        }
+        Err(_) => return false,
+    };
     return true;
 }
 
 fn banana() -> bool {
-    if !pull_repo(
-        "banana",
-        BANANA_REPO,
-        Path::new("/usr/local/share/cs2/banana"),
-    ) {
+    let package = "banana";
+    let temp_path = get_temp_path(package);
+
+    if !pull_repo(BANANA_REPO, &temp_path) {
         return false;
     }
     return true;
