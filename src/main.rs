@@ -8,7 +8,9 @@ fn main() {
 
     match matches.subcommand() {
         Some(("install", _)) => {
-            commands::install::all();
+            if !commands::install::all() {
+                std::process::exit(1);
+            };
         }
         _ => {
             println!("Hello, world!");
