@@ -3,6 +3,7 @@
 
 INSTALL_PATH=/usr/local/bin
 
+cd $(dirname "$0")
 cargo build --release
 
 if sudo cp -f $(dirname "$0")/target/release/cs2 $INSTALL_PATH/cs2; then
