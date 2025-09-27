@@ -8,8 +8,12 @@ fn main() {
 
     match matches.subcommand() {
         Some(("install", _)) => {
-            if !commands::install::all() {
-                std::process::exit(1);
+            match commands::install::all() {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("{}", e);
+                    std::process::exit(1);
+                }
             };
         }
         _ => {

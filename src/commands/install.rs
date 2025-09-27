@@ -1,3 +1,4 @@
+use std::io::Error;
 use std::path::Path;
 use std::process::Command;
 
@@ -15,29 +16,29 @@ fn get_final_path(package: &str) -> String {
     format!("/usr/local/share/cs2/{}", package)
 }
 
-fn pull_repo(link: &str, temp_path: &str) -> bool {
+fn pull_repo(link: &str, temp_path: &str) -> Result<(), Error> {
     let clone_command = match Command::new("git")
         .args(["clone", link, temp_path])
         .status()
     {
         Ok(status) => status,
-        Err(_) => return false,
+        Err(e) => return Err(e),
     };
 
     if !clone_command.success() {
-        return false;
+        return Err(Error::other(format!(
+            "Impossible to clone {}, make sure you have the permissions to do so.",
+            link
+        )));
     }
-    return true;
+    return Ok(());
 }
 
-fn move_to_final_path(temp_path: &str, final_path: &Path) -> bool {
-    let final_path_str = match final_path.to_str() {
-        Some(p) => p,
-        None => return false,
-    };
+fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<(), Error> {
+    let final_path_str = final_path.to_str().unwrap();
 
     if final_path.exists() {
-        return false;
+        return Ok(());
     }
 
     match Command::new("sudo")
@@ -46,27 +47,34 @@ fn move_to_final_path(temp_path: &str, final_path: &Path) -> bool {
     {
         Ok(status) => {
             if !status.success() {
-                return false;
+                return Err(Error::other(format!(
+                    "Impossible to move to {}",
+                    final_path_str
+                )));
             }
         }
-        Err(_) => return false,
+        Err(e) => return Err(e),
     };
-    return true;
+    return Ok(());
 }
 
 /// if clang-20 doesn't exist, check that clang installed version is `> 20`
 /// if it is, create symlink for clang-20 in `/usr/local/bin`
-fn verify_clang_version() -> bool {
+fn verify_clang_version() -> Result<(), Error> {
     if Path::new("/usr/bin/clang-20").exists() {
-        return true;
+        return Ok(());
+    };
+
+    if !Path::new("/usr/bin/clang").exists() {
+        return Err(Error::other("Impossible to find clang, is it installed?"));
     };
 
     let version_output = match Command::new("clang").args(["--version"]).output() {
         Ok(s) => s,
-        Err(_) => return false,
+        Err(e) => return Err(e),
     };
     if !version_output.status.success() {
-        return false;
+        return Err(Error::other("Impossible to get clang version"));
     }
 
     let version_string = match String::from_utf8(version_output.stdout)
@@ -75,7 +83,7 @@ fn verify_clang_version() -> bool {
         .nth(2)
     {
         Some(v) => v.to_string(),
-        None => return false,
+        None => return Err(Error::other("Impossible to get clang version")),
     };
 
     let major: i32 = version_string.split(".").next().unwrap().parse().unwrap();
@@ -85,26 +93,28 @@ fn verify_clang_version() -> bool {
             .status()
         {
             Ok(s) => s,
-            Err(_) => return false,
+            Err(e) => return Err(e),
         };
-        return true;
+        return Ok(());
     }
 
-    return false;
+    return Err(Error::other("clang version is not >= 20"));
 }
 
-fn epiclang() -> bool {
+fn epiclang() -> Result<(), Error> {
     let package = "epiclang";
     let temp_path = get_temp_path(package);
     let final_path = get_final_path(package);
 
     if Path::new(&final_path).exists() {
-        println!("Already cloned and installed, use cs2 update instead.");
-        return true;
+        return Err(Error::other(
+            "Already cloned and installed, use cs2 update instead.",
+        ));
     }
 
-    if !pull_repo(EPICLANG_REPO, temp_path.as_str()) {
-        return false;
+    match pull_repo(EPICLANG_REPO, temp_path.as_str()) {
+        Ok(_) => {}
+        Err(e) => return Err(e),
     }
 
     match Command::new("chmod")
@@ -113,13 +123,16 @@ fn epiclang() -> bool {
     {
         Ok(status) => {
             if !status.success() {
-                return false;
+                return Err(Error::other("Couldn't chmod manual-install.sh"));
             }
         }
-        Err(_) => return false,
+        Err(e) => return Err(e),
     };
 
-    move_to_final_path(temp_path.as_str(), Path::new(&final_path));
+    match move_to_final_path(temp_path.as_str(), Path::new(&final_path)) {
+        Ok(_) => {}
+        Err(e) => return Err(e),
+    };
 
     let build_command = format!("cd {} && sudo ./manual-install.sh", final_path);
 
@@ -129,29 +142,35 @@ fn epiclang() -> bool {
     {
         Ok(status) => {
             if !status.success() {
-                return false;
+                return Err(Error::other("Impossible to install epiclang"));
             }
         }
-        Err(_) => return false,
+        Err(e) => return Err(e),
     };
-    return true;
+
+    return Ok(());
 }
 
-fn banana() -> bool {
+fn banana() -> Result<(), Error> {
     let package = "banana";
     let temp_path = get_temp_path(package);
     let final_path = get_final_path(package);
 
     if Path::new(&final_path).exists() {
-        println!("Already cloned and installed");
-        return true;
+        return Err(Error::other(
+            "Already cloned and installed, use cs2 update instead.",
+        ));
     }
 
-    if !pull_repo(BANANA_REPO, &temp_path) {
-        return false;
+    match pull_repo(BANANA_REPO, temp_path.as_str()) {
+        Ok(_) => {}
+        Err(e) => return Err(e),
     }
 
-    move_to_final_path(temp_path.as_str(), Path::new(&final_path));
+    match move_to_final_path(temp_path.as_str(), Path::new(&final_path)) {
+        Ok(_) => {}
+        Err(e) => return Err(e),
+    };
 
     let build_command = format!("cd {} && ./scripts/make_plugin.sh", final_path);
 
@@ -161,10 +180,10 @@ fn banana() -> bool {
     {
         Ok(status) => {
             if !status.success() {
-                return false;
+                return Err(Error::other("Impossible to build banana"));
             }
         }
-        Err(_) => return false,
+        Err(e) => return Err(e),
     };
 
     match Command::new("sudo")
@@ -177,42 +196,50 @@ fn banana() -> bool {
     {
         Ok(status) => {
             if !status.success() {
-                return false;
+                return Err(Error::other("Impossible to move banana plugin to the plugin directory"));
             }
         }
-        Err(_) => return false,
+        Err(e) => return Err(e),
     };
-    return true;
+
+    return Ok(());
 }
 
-fn create_directory() -> bool {
+fn create_directory() -> Result<(), Error> {
     let path = "/usr/local/share/cs2";
 
     if Path::new(path).exists() {
-        return true;
+        return Ok(());
     };
 
     match Command::new("sudo").args(["mkdir", "-p", path]).status() {
-        Ok(s) => {
-            return s.success();
+        Ok(_) => {
+            return Ok(());
         }
-        Err(_) => {}
+        Err(e) => return Err(e),
     };
-    return false;
 }
 
-pub fn all() -> bool {
-    if !create_directory() {
-        return false;
+pub fn all() -> Result<(), Error> {
+    match create_directory() {
+        Ok(_) => {}
+        Err(e) => return Err(e),
     }
 
-    if !verify_clang_version() {
-        return false;
+    match verify_clang_version() {
+        Ok(_) => {}
+        Err(e) => return Err(e),
     };
 
-    if !epiclang() || !banana() {
-        return false;
+    match epiclang() {
+        Ok(_) => {}
+        Err(e) => return Err(e),
     };
 
-    return true;
+    match banana() {
+        Ok(_) => {}
+        Err(e) => return Err(e),
+    };
+
+    return Ok(());
 }
