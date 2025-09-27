@@ -24,6 +24,12 @@ fn main() {
             Command::new("update")
                 .about("Update cs2 and the dependencies")
                 .arg(
+                    Arg::new("cs2")
+                        .long("cs2")
+                        .help("Only update cs2")
+                        .num_args(0),
+                )
+                .arg(
                     Arg::new("epiclang")
                         .long("epiclang")
                         .help("Only update epiclang")

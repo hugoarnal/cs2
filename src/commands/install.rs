@@ -4,16 +4,10 @@ use std::process::Command;
 
 use clap::ArgMatches;
 
+use crate::commands::shared;
+
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
-
-fn get_temp_path(package: &str) -> String {
-    format!("/tmp/cs2-{}", package)
-}
-
-fn get_final_path(package: &str) -> String {
-    format!("/usr/local/share/cs2/{}", package)
-}
 
 fn pull_repo(link: &str, temp_path: &str) -> Result<(), Error> {
     if !Command::new("git")
@@ -22,7 +16,7 @@ fn pull_repo(link: &str, temp_path: &str) -> Result<(), Error> {
         .success()
     {
         return Err(Error::other(format!(
-            "Impossible to clone {}, make sure you have the permissions to do so.",
+            "Impossible to clone {}, make sure you have the permissions to do so",
             link
         )));
     };
@@ -87,12 +81,12 @@ fn verify_clang_version() -> Result<(), Error> {
 
 fn epiclang() -> Result<(), Error> {
     let package = "epiclang";
-    let temp_path = get_temp_path(package);
-    let final_path = get_final_path(package);
+    let temp_path = shared::get_temp_path(package);
+    let final_path = shared::get_final_path(package);
 
     if Path::new(&final_path).exists() {
         return Err(Error::other(
-            "Already cloned and installed, use cs2 update instead.",
+            "Already cloned and installed, use cs2 update instead",
         ));
     }
 
@@ -108,27 +102,19 @@ fn epiclang() -> Result<(), Error> {
 
     move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
 
-    let build_command = format!("cd {} && sudo ./manual-install.sh", final_path);
-
-    if !Command::new("sh")
-        .args(["-c", build_command.as_str()])
-        .status()?
-        .success()
-    {
-        return Err(Error::other("Impossible to install epiclang"));
-    }
+    shared::build_epiclang(&final_path)?;
 
     return Ok(());
 }
 
 fn banana() -> Result<(), Error> {
     let package = "banana";
-    let temp_path = get_temp_path(package);
-    let final_path = get_final_path(package);
+    let temp_path = shared::get_temp_path(package);
+    let final_path = shared::get_final_path(package);
 
     if Path::new(&final_path).exists() {
         return Err(Error::other(
-            "Already cloned and installed, use cs2 update instead.",
+            "Already cloned and installed, use cs2 update instead",
         ));
     }
 
@@ -136,41 +122,19 @@ fn banana() -> Result<(), Error> {
 
     move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
 
-    let build_command = format!("cd {} && ./scripts/make_plugin.sh", final_path);
-
-    if !Command::new("sh")
-        .args(["-c", build_command.as_str()])
-        .status()?
-        .success()
-    {
-        return Err(Error::other("Impossible to build banana"));
-    }
-
-    if !Command::new("sudo")
-        .args([
-            "mv",
-            format!("{}/epiclang-plugin-banana.so", final_path).as_str(),
-            "/usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
-        ])
-        .status()?
-        .success()
-    {
-        return Err(Error::other(
-            "Impossible to move banana plugin to the plugin directory",
-        ));
-    }
+    shared::build_banana(&final_path)?;
 
     return Ok(());
 }
 
 fn create_directory() -> Result<(), Error> {
-    let path = "/usr/local/share/cs2";
+    let path = shared::get_final_path("");
 
-    if Path::new(path).exists() {
+    if Path::new(&path).exists() {
         return Ok(());
     };
 
-    match Command::new("sudo").args(["mkdir", "-p", path]).status() {
+    match Command::new("sudo").args(["mkdir", "-p", &path]).status() {
         Ok(_) => {
             return Ok(());
         }
