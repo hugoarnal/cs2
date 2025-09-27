@@ -99,7 +99,7 @@ fn epiclang() -> bool {
     let final_path = get_final_path(package);
 
     if Path::new(&final_path).exists() {
-        println!("Already cloned and installed");
+        println!("Already cloned and installed, use cs2 update instead.");
         return true;
     }
 
@@ -186,10 +186,13 @@ fn banana() -> bool {
 }
 
 fn create_directory() -> bool {
-    match Command::new("sudo")
-        .args(["mkdir", "-p", "/usr/local/share/cs2"])
-        .status()
-    {
+    let path = "/usr/local/share/cs2";
+
+    if Path::new(path).exists() {
+        return true;
+    };
+
+    match Command::new("sudo").args(["mkdir", "-p", path]).status() {
         Ok(s) => {
             return s.success();
         }
