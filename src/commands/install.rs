@@ -2,6 +2,8 @@ use std::io::Error;
 use std::path::Path;
 use std::process::Command;
 
+use clap::ArgMatches;
+
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
 
@@ -219,7 +221,7 @@ fn create_directory() -> Result<(), Error> {
     };
 }
 
-pub fn all() -> Result<(), Error> {
+fn verify() -> Result<(), Error> {
     match create_directory() {
         Ok(_) => {}
         Err(e) => return Err(e),
@@ -230,6 +232,10 @@ pub fn all() -> Result<(), Error> {
         Err(e) => return Err(e),
     };
 
+    Ok(())
+}
+
+pub fn all() -> Result<(), Error> {
     match epiclang() {
         Ok(_) => {}
         Err(e) => return Err(e),
@@ -241,4 +247,23 @@ pub fn all() -> Result<(), Error> {
     };
 
     return Ok(());
+}
+
+pub fn handler(args: &ArgMatches) -> Result<(), Error> {
+    verify()?;
+
+    if *args.get_one::<bool>("epiclang").unwrap() {
+        println!("Installing only epiclang");
+        epiclang()?;
+    };
+    if *args.get_one::<bool>("banana").unwrap() {
+        println!("Installing only banana");
+        banana()?;
+    };
+
+    if !args.args_present() {
+        all()?;
+    };
+
+    Ok(())
 }

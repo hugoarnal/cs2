@@ -1,17 +1,32 @@
 mod commands;
-use clap::{Command, command};
+use clap::{Arg, Command, command};
 use std::io::IsTerminal;
 
 fn main() {
     let matches = command!()
-        .subcommand(Command::new("install").about("Installs all the dependencies needed"))
+        .subcommand(
+            Command::new("install")
+                .about("Installs all the dependencies needed")
+                .arg(
+                    Arg::new("epiclang")
+                        .long("epiclang")
+                        .help("Only install epiclang")
+                        .num_args(0),
+                )
+                .arg(
+                    Arg::new("banana")
+                        .long("banana")
+                        .help("Only install banana")
+                        .num_args(0),
+                ),
+        )
         .subcommand(Command::new("update").about("Update cs2 and the dependencies"))
         .subcommand(Command::new("run").about("Run your command through the coding style checker"))
         .get_matches();
 
     match matches.subcommand() {
-        Some(("install", _)) => {
-            match commands::install::all() {
+        Some(("install", args)) => {
+            match commands::install::handler(&args) {
                 Ok(_) => {}
                 Err(e) => {
                     println!("{}", e);
