@@ -96,6 +96,12 @@ fn verify_clang_version() -> bool {
 fn epiclang() -> bool {
     let package = "epiclang";
     let temp_path = get_temp_path(package);
+    let final_path = get_final_path(package);
+
+    if Path::new(&final_path).exists() {
+        println!("Already cloned and installed");
+        return true;
+    }
 
     if !pull_repo(EPICLANG_REPO, temp_path.as_str()) {
         return false;
@@ -113,16 +119,12 @@ fn epiclang() -> bool {
         Err(_) => return false,
     };
 
-    move_to_final_path(
-        temp_path.as_str(),
-        Path::new(&get_final_path(package)),
-    );
+    move_to_final_path(temp_path.as_str(), Path::new(&final_path));
+
+    let build_command = format!("cd {} && sudo ./manual-install.sh", final_path);
 
     match Command::new("sh")
-        .args([
-            "-c",
-            "cd /usr/local/share/cs2/epiclang && sudo ./manual-install.sh",
-        ])
+        .args(["-c", build_command.as_str()])
         .status()
     {
         Ok(status) => {
@@ -138,10 +140,48 @@ fn epiclang() -> bool {
 fn banana() -> bool {
     let package = "banana";
     let temp_path = get_temp_path(package);
+    let final_path = get_final_path(package);
+
+    if Path::new(&final_path).exists() {
+        println!("Already cloned and installed");
+        return true;
+    }
 
     if !pull_repo(BANANA_REPO, &temp_path) {
         return false;
     }
+
+    move_to_final_path(temp_path.as_str(), Path::new(&final_path));
+
+    let build_command = format!("cd {} && ./scripts/make_plugin.sh", final_path);
+
+    match Command::new("sh")
+        .args(["-c", build_command.as_str()])
+        .status()
+    {
+        Ok(status) => {
+            if !status.success() {
+                return false;
+            }
+        }
+        Err(_) => return false,
+    };
+
+    match Command::new("sudo")
+        .args([
+            "mv",
+            format!("{}/epiclang-plugin-banana.so", final_path).as_str(),
+            "/usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
+        ])
+        .status()
+    {
+        Ok(status) => {
+            if !status.success() {
+                return false;
+            }
+        }
+        Err(_) => return false,
+    };
     return true;
 }
 
