@@ -44,14 +44,14 @@ fn update_package(package: &str) -> Result<(), Error> {
 }
 
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
-    if *args.get_one::<bool>("epiclang").unwrap() {
-        println!("Updating only epiclang");
-        update_package("epiclang")?;
-    };
-    if *args.get_one::<bool>("banana").unwrap() {
-        println!("Updating only banana");
-        update_package("banana")?;
-    };
+    let valid_args = ["cs2", "epiclang", "banana"];
+
+    for valid_arg in valid_args {
+        if *args.get_one::<bool>(valid_arg).unwrap() {
+            println!("Updating only {}", valid_arg);
+            update_package(valid_arg)?;
+        };
+    }
 
     if !args.args_present() {
         update_package("epiclang")?;

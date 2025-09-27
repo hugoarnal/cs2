@@ -51,6 +51,20 @@ pub fn build_banana(final_path: &str) -> Result<(), Error> {
     Ok(())
 }
 
+fn build_cs2(final_path: &str) -> Result<(), Error> {
+    let build_command = format!("cd {} && ./compile.sh", final_path);
+
+    if !Command::new("sh")
+        .args(["-c", build_command.as_str()])
+        .status()?
+        .success()
+    {
+        return Err(Error::other("Impossible to build cs2"));
+    }
+
+    Ok(())
+}
+
 pub fn build_package(package: &str) -> Result<(), Error> {
     let final_path = get_final_path(package);
 
@@ -58,6 +72,8 @@ pub fn build_package(package: &str) -> Result<(), Error> {
         build_epiclang(&final_path)?;
     } else if package == "banana" {
         build_banana(&final_path)?;
+    } else if package == "cs2" {
+        build_cs2(&final_path)?;
     }
 
     Ok(())
