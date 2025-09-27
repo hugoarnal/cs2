@@ -20,7 +20,22 @@ fn main() {
                         .num_args(0),
                 ),
         )
-        .subcommand(Command::new("update").about("Update cs2 and the dependencies"))
+        .subcommand(
+            Command::new("update")
+                .about("Update cs2 and the dependencies")
+                .arg(
+                    Arg::new("epiclang")
+                        .long("epiclang")
+                        .help("Only update epiclang")
+                        .num_args(0),
+                )
+                .arg(
+                    Arg::new("banana")
+                        .long("banana")
+                        .help("Only update banana")
+                        .num_args(0),
+                ),
+        )
         .subcommand(Command::new("run").about("Run your command through the coding style checker"))
         .get_matches();
 
@@ -34,8 +49,8 @@ fn main() {
                 }
             };
         }
-        Some(("update", _)) => {
-            match commands::update::all() {
+        Some(("update", args)) => {
+            match commands::update::handler(&args) {
                 Ok(_) => {}
                 Err(e) => {
                     println!("{}", e);

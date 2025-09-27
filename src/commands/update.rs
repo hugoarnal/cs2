@@ -1,5 +1,8 @@
 use std::io::Error;
 
-pub fn all() -> Result<(), Error> {
+use clap::ArgMatches;
+
+pub fn handler(args: &ArgMatches) -> Result<(), Error> {
+    let _ = args;
     return Ok(());
 }
