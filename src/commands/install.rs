@@ -5,9 +5,6 @@ use std::process::Command;
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
 
-// TODO: replace all bools by Result
-// TODO: add logging
-
 fn get_temp_path(package: &str) -> String {
     format!("/tmp/cs2-{}", package)
 }
@@ -196,7 +193,9 @@ fn banana() -> Result<(), Error> {
     {
         Ok(status) => {
             if !status.success() {
-                return Err(Error::other("Impossible to move banana plugin to the plugin directory"));
+                return Err(Error::other(
+                    "Impossible to move banana plugin to the plugin directory",
+                ));
             }
         }
         Err(e) => return Err(e),
