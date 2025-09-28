@@ -1,7 +1,8 @@
 mod build_systems;
 mod commands;
 mod parse;
-use clap::{Arg, Command, command};
+mod shared;
+use clap::{Arg, ArgAction, Command, command};
 use std::io::{BufRead, IsTerminal};
 
 // TODO: simplify arguments in install & update
@@ -58,7 +59,11 @@ fn main() {
                         .num_args(0),
                 ),
         )
-        .subcommand(Command::new("run").about("Run your command through the coding style checker"))
+        .subcommand(
+            Command::new("run")
+                .about("Run your command through the coding style checker")
+                .arg(Arg::new("command").action(ArgAction::Append)),
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -73,6 +78,30 @@ fn main() {
         }
         Some(("update", args)) => {
             match commands::update::handler(&args) {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("{}", e);
+                    std::process::exit(1);
+                }
+            };
+        }
+        Some(("run", sub_matches)) => {
+            if !sub_matches.args_present() {
+                println!("No command provided");
+                std::process::exit(1);
+            }
+
+            let command_args = sub_matches
+                .get_many::<String>("command")
+                .unwrap_or_default()
+                .collect::<Vec<_>>();
+
+            if command_args.len() <= 0 {
+                println!("No command provided");
+                std::process::exit(1);
+            }
+
+            match commands::run::run(command_args) {
                 Ok(_) => {}
                 Err(e) => {
                     println!("{}", e);
