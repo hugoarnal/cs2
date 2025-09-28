@@ -74,6 +74,7 @@ fn verify_clang_version() -> Result<(), Error> {
         Command::new("sudo")
             .args(["ln", "-s", "/usr/bin/clang", "/usr/local/bin/clang-20"])
             .spawn()?;
+        shared::warn_path_var("/usr/local/bin");
     }
 
     return Err(Error::other("clang version is not >= 20"));
@@ -103,6 +104,8 @@ fn epiclang() -> Result<(), Error> {
     move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
 
     shared::build_epiclang(&final_path)?;
+
+    shared::warn_path_var("/usr/local/bin");
 
     return Ok(());
 }

@@ -1,3 +1,4 @@
+use std::env;
 use std::io::Error;
 use std::process::Command;
 
@@ -83,4 +84,13 @@ pub fn build_package(package: &str, parallelism: bool) -> Result<(), Error> {
     }
 
     Ok(())
+}
+
+pub fn warn_path_var(directory: &str) {
+    if !env::var("PATH").unwrap().contains(directory) {
+        println!(
+            "You need to add {} to your PATH environment variable.",
+            directory
+        );
+    }
 }
