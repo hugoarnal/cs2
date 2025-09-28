@@ -23,14 +23,20 @@ pub fn build_epiclang(final_path: &str) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn build_banana(final_path: &str) -> Result<(), Error> {
+pub fn build_banana(final_path: &str, parallelism: bool) -> Result<(), Error> {
     let build_command = format!("cd {} && ./scripts/make_plugin.sh", final_path);
 
-    if !Command::new("sh")
-        .args(["-c", build_command.as_str()])
-        .status()?
-        .success()
-    {
+    let mut full_command = Command::new("sh");
+    full_command.args(["-c", build_command.as_str()]);
+
+    if parallelism {
+        full_command.env(
+            "CMAKE_BUILD_PARALLEL_LEVEL",
+            std::thread::available_parallelism()?.get().to_string(),
+        );
+    }
+
+    if !full_command.status()?.success() {
         return Err(Error::other("Impossible to build banana"));
     }
 
@@ -65,13 +71,13 @@ fn build_cs2(final_path: &str) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn build_package(package: &str) -> Result<(), Error> {
+pub fn build_package(package: &str, parallelism: bool) -> Result<(), Error> {
     let final_path = get_final_path(package);
 
     if package == "epiclang" {
         build_epiclang(&final_path)?;
     } else if package == "banana" {
-        build_banana(&final_path)?;
+        build_banana(&final_path, parallelism)?;
     } else if package == "cs2" {
         build_cs2(&final_path)?;
     }

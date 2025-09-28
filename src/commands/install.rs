@@ -107,7 +107,7 @@ fn epiclang() -> Result<(), Error> {
     return Ok(());
 }
 
-fn banana() -> Result<(), Error> {
+fn banana(parallelism: bool) -> Result<(), Error> {
     let package = "banana";
     let temp_path = shared::get_temp_path(package);
     let final_path = shared::get_final_path(package);
@@ -122,7 +122,7 @@ fn banana() -> Result<(), Error> {
 
     move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
 
-    shared::build_banana(&final_path)?;
+    shared::build_banana(&final_path, parallelism)?;
 
     return Ok(());
 }
@@ -143,6 +143,8 @@ fn create_directory() -> Result<(), Error> {
 }
 
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
+    let parallelism = *args.get_one::<bool>("parallelism").unwrap();
+
     create_directory()?;
     verify_clang_version()?;
 
@@ -152,12 +154,12 @@ pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     };
     if *args.get_one::<bool>("banana").unwrap() {
         println!("Installing only banana");
-        banana()?;
+        banana(parallelism)?;
     };
 
     if !args.args_present() {
         epiclang()?;
-        banana()?;
+        banana(parallelism)?;
     };
 
     Ok(())

@@ -2,6 +2,8 @@ mod commands;
 use clap::{Arg, Command, command};
 use std::io::IsTerminal;
 
+// TODO: simplify arguments in install & update
+
 fn main() {
     let matches = command!()
         .subcommand(
@@ -17,6 +19,12 @@ fn main() {
                     Arg::new("banana")
                         .long("banana")
                         .help("Only install banana")
+                        .num_args(0),
+                )
+                .arg(
+                    Arg::new("parallelism")
+                        .short('j')
+                        .help("For banana, install with parallelism")
                         .num_args(0),
                 ),
         )
@@ -39,6 +47,12 @@ fn main() {
                     Arg::new("banana")
                         .long("banana")
                         .help("Only update banana")
+                        .num_args(0),
+                )
+                .arg(
+                    Arg::new("parallelism")
+                        .short('j')
+                        .help("For banana, install with parallelism")
                         .num_args(0),
                 ),
         )

@@ -14,6 +14,13 @@ Epitech Banana (v4) Coding Style Helper
 
 ## Install
 
+Requirements:
+- Rust
+- Cargo
+- clang (>= 20)
+- CMake
+- llvm-lib
+
 Use the `install.sh` script:
 
 ```sh

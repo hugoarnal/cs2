@@ -24,7 +24,7 @@ fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
     }
 }
 
-fn update_package(package: &str) -> Result<(), Error> {
+fn update_package(package: &str, parallelism: bool) -> Result<(), Error> {
     let path = shared::get_final_path(package);
 
     if !Path::new(&path).exists() {
@@ -35,7 +35,7 @@ fn update_package(package: &str) -> Result<(), Error> {
     }
 
     if pull_repo(&path, package)? {
-        shared::build_package(package)?;
+        shared::build_package(package, parallelism)?;
     } else {
         println!("Nothing to update");
     }
@@ -44,18 +44,19 @@ fn update_package(package: &str) -> Result<(), Error> {
 }
 
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
+    let parallelism = *args.get_one::<bool>("parallelism").unwrap();
     let valid_args = ["cs2", "epiclang", "banana"];
 
     for valid_arg in valid_args {
         if *args.get_one::<bool>(valid_arg).unwrap() {
             println!("Updating only {}", valid_arg);
-            update_package(valid_arg)?;
+            update_package(valid_arg, parallelism)?;
         };
     }
 
     if !args.args_present() {
-        update_package("epiclang")?;
-        update_package("banana")?;
+        update_package("epiclang", parallelism)?;
+        update_package("banana", parallelism)?;
     };
 
     Ok(())
