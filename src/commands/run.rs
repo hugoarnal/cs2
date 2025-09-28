@@ -1,6 +1,6 @@
 use std::{io::Error, process::Command};
 
-use crate::shared;
+use crate::{parse, shared};
 
 pub fn run(command_args: Vec<&String>) -> Result<(), Error> {
     let mut i = command_args.iter();
@@ -12,11 +12,9 @@ pub fn run(command_args: Vec<&String>) -> Result<(), Error> {
         .args(i.collect::<Vec<_>>())
         .output()?;
 
-    for line in shared::split_output(outputs.stderr)? {
-        if line.contains(shared::BANANA_ERROR_PREFIX) {
-            println!("line: {}", line);
-        }
-    }
+    let all_output = shared::merge_outputs(outputs.stdout, outputs.stderr);
+
+    parse::parse_output(shared::split_output(all_output)?)?;
 
     if !outputs.status.success() {
         return Err(Error::other(format!(

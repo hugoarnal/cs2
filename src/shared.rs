@@ -12,3 +12,12 @@ pub fn split_output(output: Vec<u8>) -> Result<Vec<String>, Error> {
         .map(|f| String::from(f))
         .collect::<Vec<_>>())
 }
+
+pub fn merge_outputs(stdout: Vec<u8>, stderr: Vec<u8>) -> Vec<u8> {
+    let mut merged: Vec<u8> = Vec::new();
+
+    stdout.iter().for_each(|c| merged.push(*c));
+    stderr.iter().for_each(|c| merged.push(*c));
+
+    merged
+}
