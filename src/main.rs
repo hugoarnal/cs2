@@ -1,6 +1,8 @@
+mod build_systems;
 mod commands;
+mod parse;
 use clap::{Arg, Command, command};
-use std::io::IsTerminal;
+use std::io::{BufRead, IsTerminal};
 
 // TODO: simplify arguments in install & update
 
@@ -80,9 +82,25 @@ fn main() {
         }
         _ => {
             if !std::io::stdin().is_terminal() {
-                println!("This is a pipe");
+                let mut full_input = Vec::new();
+                for line in std::io::stdin().lock().lines() {
+                    match line {
+                        Ok(s) => full_input.push(s),
+                        Err(_) => break,
+                    }
+                }
+
+                let _ = parse::parse_output(full_input);
             } else {
-                println!("Find a build system");
+                let lines = match build_systems::find() {
+                    Ok(lines) => lines,
+                    Err(e) => {
+                        println!("{}", e);
+                        std::process::exit(1);
+                    }
+                };
+
+                let _ = parse::parse_output(lines);
             }
         }
     }
