@@ -47,17 +47,19 @@ pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     let parallelism = *args.get_one::<bool>("parallelism").unwrap();
     let valid_args = ["cs2", "epiclang", "banana"];
 
+    if !args.args_present() {
+        for arg in valid_args {
+            update_package(arg, parallelism)?;
+        }
+        return Ok(());
+    }
+
     for valid_arg in valid_args {
         if *args.get_one::<bool>(valid_arg).unwrap() {
             println!("Updating only {}", valid_arg);
             update_package(valid_arg, parallelism)?;
         };
     }
-
-    if !args.args_present() {
-        update_package("epiclang", parallelism)?;
-        update_package("banana", parallelism)?;
-    };
 
     Ok(())
 }
