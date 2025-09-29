@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 ## This script is used to compile when installing or updating cs2.
 
+set -e
+set -u
+
 INSTALL_PATH=/usr/local/bin
 
 cd $(dirname "$0")
@@ -15,3 +18,6 @@ if sudo cp -f $(dirname "$0")/target/release/cs2 $INSTALL_PATH/cs2; then
 else
     echo "An error occurred, couldn't compile cs2."
 fi
+
+set +e
+set +u
