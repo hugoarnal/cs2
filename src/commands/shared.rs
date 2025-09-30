@@ -50,9 +50,7 @@ pub fn build_banana(final_path: &str, parallelism: bool) -> Result<(), Error> {
         .status()?
         .success()
     {
-        return Err(Error::other(
-            "Impossible to move banana-check-repo",
-        ));
+        return Err(Error::other("Impossible to move banana-check-repo"));
     }
 
     if !Command::new("sudo")

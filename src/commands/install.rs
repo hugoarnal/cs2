@@ -71,9 +71,10 @@ fn verify_clang_version() -> Result<(), Error> {
 
     let major: i32 = version_string.split(".").next().unwrap().parse().unwrap();
     if major > 20 {
-        Command::new("sudo")
+        let _ = Command::new("sudo")
             .args(["ln", "-s", "/usr/bin/clang", "/usr/local/bin/clang-20"])
-            .spawn()?;
+            .spawn()?
+            .wait();
         shared::warn_path_var("/usr/local/bin");
     }
 

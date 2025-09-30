@@ -7,6 +7,13 @@ use crate::shared;
 // TODO: use enums
 
 fn build_makefile() -> Result<Vec<String>, Error> {
+    // TODO: add option to NOT clean
+    let _ = Command::new("make")
+        .arg("fclean")
+        .envs(shared::DEFAULT_RUN_ENV)
+        .spawn()?
+        .wait();
+
     let command = Command::new("make")
         .envs(shared::DEFAULT_RUN_ENV)
         .output()?;
