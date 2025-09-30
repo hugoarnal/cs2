@@ -129,7 +129,13 @@ fn main() {
                     }
                 };
 
-                let _ = parse::parse_output(lines);
+                match parse::parse_output(lines) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        println!("{}", e);
+                        std::process::exit(1);
+                    }
+                };
             }
         }
     }
