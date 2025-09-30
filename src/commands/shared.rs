@@ -43,6 +43,20 @@ pub fn build_banana(final_path: &str, parallelism: bool) -> Result<(), Error> {
 
     if !Command::new("sudo")
         .args([
+            "cp",
+            format!("{}/src/banana-check-repo", final_path).as_str(),
+            "/usr/local/bin/banana-check-repo",
+        ])
+        .status()?
+        .success()
+    {
+        return Err(Error::other(
+            "Impossible to move banana-check-repo",
+        ));
+    }
+
+    if !Command::new("sudo")
+        .args([
             "mv",
             format!("{}/epiclang-plugin-banana.so", final_path).as_str(),
             "/usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
