@@ -111,14 +111,18 @@ fn parse_line(line: String) -> Option<LineError> {
 
 fn print_error(errors: &Vec<LineError>) {
     for error in errors {
-        println!("file: {}", error.file);
-        println!("line_nb: {}", error.line_nb);
-        println!("col_nb: {}", error.col_nb);
-        println!("level: {}", error.level);
-        println!("rule: {}", error.rule);
-        println!("desc: {}", error.description);
-        println!("-----------------");
+        println!("{}, {}:{}:{}, {} {}", error.level, error.file, error.line_nb, error.col_nb, error.rule, error.description);
     }
+}
+
+/// Remove duplicates with PartialEq
+/// Sort by line_nb, col_nb and file name
+fn clean_errors_vector(errors: &mut Vec<LineError>) {
+    errors.dedup();
+
+    errors.sort_by(|a, b| a.line_nb.cmp(&b.line_nb));
+    errors.sort_by(|a, b| a.col_nb.cmp(&b.col_nb));
+    errors.sort_by(|a, b| a.file.to_lowercase().cmp(&b.file.to_lowercase()));
 }
 
 pub fn parse_output(lines: Vec<String>) -> Result<(), Error> {
@@ -133,9 +137,7 @@ pub fn parse_output(lines: Vec<String>) -> Result<(), Error> {
         errors.push(line_error);
     }
 
-    // print_error(&errors);
-    // verify_errors(errors)?;
-    errors.dedup();
+    clean_errors_vector(&mut errors);
     print_error(&errors);
 
     Ok(())
