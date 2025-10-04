@@ -70,9 +70,9 @@ fn parse_line(line: String) -> Option<LineError> {
 
     let mut split_semi = line.split(":");
 
-    let file = split_semi.nth(0).unwrap().to_string();
-    let line_nb: u32 = split_semi.nth(0).unwrap().to_string().parse().unwrap();
-    let col_nb: u32 = split_semi.nth(0).unwrap().to_string().parse().unwrap();
+    let file = split_semi.next().unwrap().to_string();
+    let line_nb: u32 = split_semi.next().unwrap().to_string().parse().unwrap();
+    let col_nb: u32 = split_semi.next().unwrap().to_string().parse().unwrap();
 
     let mut split_right_bracket = line.split("]");
 
@@ -86,7 +86,7 @@ fn parse_line(line: String) -> Option<LineError> {
         .last()
         .unwrap()
         .split(")")
-        .nth(0)
+        .next()
         .unwrap()
         .to_string();
 
@@ -95,7 +95,7 @@ fn parse_line(line: String) -> Option<LineError> {
         .last()
         .unwrap()
         .split("(")
-        .nth(0)
+        .next()
         .unwrap()
         .to_string();
 

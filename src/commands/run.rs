@@ -5,7 +5,7 @@ use crate::{parse, shared};
 pub fn run(command_args: Vec<&String>) -> Result<(), Error> {
     let mut i = command_args.iter();
 
-    let program = i.nth(0).unwrap();
+    let program = i.next().unwrap();
 
     let outputs = Command::new(program)
         .envs(shared::DEFAULT_RUN_ENV)
