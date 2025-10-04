@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 use crate::shared;
 
+#[derive(Clone, PartialEq)]
 enum ErrorLevel {
     FATAL,
     MAJOR,
@@ -37,6 +38,7 @@ impl FromStr for ErrorLevel {
     }
 }
 
+#[derive(Clone)]
 pub struct LineError {
     file: String,
     line_nb: u32,
@@ -44,6 +46,18 @@ pub struct LineError {
     level: ErrorLevel,
     rule: String,
     description: String,
+}
+
+/// Check for equality in file, line & col nb, level and rule
+/// We don't check for the description as it might be different
+impl PartialEq for LineError {
+    fn eq(&self, rhs: &LineError) -> bool {
+        return self.file == rhs.file
+            && self.line_nb == rhs.line_nb
+            && self.col_nb == rhs.col_nb
+            && self.level == rhs.level
+            && self.rule == rhs.rule;
+    }
 }
 
 fn parse_line(line: String) -> Option<LineError> {
@@ -95,20 +109,34 @@ fn parse_line(line: String) -> Option<LineError> {
     })
 }
 
+fn print_error(errors: &Vec<LineError>) {
+    for error in errors {
+        println!("file: {}", error.file);
+        println!("line_nb: {}", error.line_nb);
+        println!("col_nb: {}", error.col_nb);
+        println!("level: {}", error.level);
+        println!("rule: {}", error.rule);
+        println!("desc: {}", error.description);
+        println!("-----------------");
+    }
+}
+
 pub fn parse_output(lines: Vec<String>) -> Result<(), Error> {
+    let mut errors: Vec<LineError> = Vec::new();
+
     for line in lines {
         let line_error = match parse_line(line) {
             Some(error) => error,
             None => continue,
         };
 
-        println!("file: {}", line_error.file);
-        println!("line_nb: {}", line_error.line_nb);
-        println!("col_nb: {}", line_error.col_nb);
-        println!("level: {}", line_error.level);
-        println!("rule: {}", line_error.rule);
-        println!("desc: {}", line_error.description);
-        println!("-----------------");
+        errors.push(line_error);
     }
+
+    // print_error(&errors);
+    // verify_errors(errors)?;
+    errors.dedup();
+    print_error(&errors);
+
     Ok(())
 }
