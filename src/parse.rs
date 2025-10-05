@@ -133,12 +133,19 @@ fn print_errors(errors: &Vec<LineError>) {
         }
         print!(
             "{}{} [{}]:{}",
-            error.level.to_color_str(), error.level, error.rule, shared::Colors::RESET
+            error.level.to_color_str(),
+            error.level,
+            error.rule,
+            shared::Colors::RESET
         );
         print!(" {} ", error.description);
         println!(
             "{}({}:{}:{}){}",
-            shared::Colors::GRAY, error.file, error.line_nb, error.col_nb, shared::Colors::RESET
+            shared::Colors::GRAY,
+            error.file,
+            error.line_nb,
+            error.col_nb,
+            shared::Colors::RESET
         );
         prev_file_name = error.file.clone();
     }
