@@ -38,6 +38,21 @@ impl FromStr for ErrorLevel {
     }
 }
 
+impl ErrorLevel {
+    fn to_color(&self) -> shared::Colors {
+        match *self {
+            Self::FATAL => shared::Colors::RED,
+            Self::MAJOR => shared::Colors::RED,
+            Self::MINOR => shared::Colors::ORANGE,
+            Self::INFO => shared::Colors::BLUE,
+        }
+    }
+
+    fn to_color_str(&self) -> &'static str {
+        self.to_color().as_str()
+    }
+}
+
 #[derive(Clone)]
 pub struct LineError {
     file: String,
@@ -116,9 +131,14 @@ fn print_errors(errors: &Vec<LineError>) {
         if prev_file_name.is_empty() || prev_file_name != error.file {
             println!("{}:", error.file);
         }
+        print!(
+            "{}{} [{}]:{}",
+            error.level.to_color_str(), error.level, error.rule, shared::Colors::RESET
+        );
+        print!(" {} ", error.description);
         println!(
-            "{} [{}]: {}({}:{}:{})",
-            error.level, error.rule, error.description, error.file, error.line_nb, error.col_nb
+            "{}({}:{}:{}){}",
+            shared::Colors::GRAY, error.file, error.line_nb, error.col_nb, shared::Colors::RESET
         );
         prev_file_name = error.file.clone();
     }
