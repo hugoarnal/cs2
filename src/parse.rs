@@ -14,13 +14,7 @@ enum ErrorLevel {
 
 impl fmt::Display for ErrorLevel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let level = match *self {
-            ErrorLevel::FATAL => "FATAL",
-            ErrorLevel::MAJOR => "MAJOR",
-            ErrorLevel::MINOR => "MINOR",
-            ErrorLevel::INFO => "INFO",
-        };
-        write!(f, "{}", level)
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -39,6 +33,15 @@ impl FromStr for ErrorLevel {
 }
 
 impl ErrorLevel {
+    fn as_str(&self) -> &'static str {
+        match *self {
+            ErrorLevel::FATAL => "FATAL",
+            ErrorLevel::MAJOR => "MAJOR",
+            ErrorLevel::MINOR => "MINOR",
+            ErrorLevel::INFO => "INFO",
+        }
+    }
+
     fn to_color(&self) -> shared::Colors {
         match *self {
             Self::FATAL => shared::Colors::RED,
@@ -124,6 +127,58 @@ fn parse_line(line: String) -> Option<LineError> {
     })
 }
 
+fn summary_errors(errors: &Vec<LineError>) {
+    let mut errors_level = [
+        (ErrorLevel::FATAL, 0),
+        (ErrorLevel::MAJOR, 0),
+        (ErrorLevel::MINOR, 0),
+        (ErrorLevel::INFO, 0),
+    ];
+
+    for error in errors {
+        match error.level {
+            ErrorLevel::FATAL => errors_level[0].1 += 1,
+            ErrorLevel::MAJOR => errors_level[1].1 += 1,
+            ErrorLevel::MINOR => errors_level[2].1 += 1,
+            ErrorLevel::INFO => errors_level[3].1 += 1,
+        };
+    }
+
+    print!(
+        "{}{} error(s){}: ",
+        shared::Colors::BOLD,
+        errors.len(),
+        shared::Colors::RESET
+    );
+
+    for (i, (level, amount)) in errors_level.iter().enumerate() {
+        let bold = if *level == ErrorLevel::FATAL {
+            shared::Colors::BOLD.as_str()
+        } else {
+            ""
+        };
+
+        let comma = if i < errors_level.len() - 1 {
+            ", "
+        } else {
+            ""
+        };
+
+        // TODO: perhaps don't show if amount < 0
+        print!(
+            "{}{}{} {}{}{}",
+            bold,
+            level.to_color_str(),
+            amount,
+            level.as_str().to_ascii_lowercase(),
+            shared::Colors::RESET,
+            comma
+        );
+    }
+
+    print!("\n");
+}
+
 fn print_errors(errors: &Vec<LineError>) {
     let mut prev_file_name = String::new();
 
@@ -149,6 +204,8 @@ fn print_errors(errors: &Vec<LineError>) {
         );
         prev_file_name = error.file.clone();
     }
+
+    summary_errors(errors);
 }
 
 /// Remove duplicates with PartialEq
