@@ -11,8 +11,7 @@ fn build_makefile() -> Result<Vec<String>, Error> {
     let _ = Command::new("make")
         .arg("fclean")
         .envs(shared::DEFAULT_RUN_ENV)
-        .spawn()?
-        .wait();
+        .output()?;
 
     let command = Command::new("make")
         .envs(shared::DEFAULT_RUN_ENV)

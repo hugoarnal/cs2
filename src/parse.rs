@@ -109,9 +109,18 @@ fn parse_line(line: String) -> Option<LineError> {
     })
 }
 
-fn print_error(errors: &Vec<LineError>) {
+fn print_errors(errors: &Vec<LineError>) {
+    let mut prev_file_name = String::new();
+
     for error in errors {
-        println!("{}, {}:{}:{}, {} {}", error.level, error.file, error.line_nb, error.col_nb, error.rule, error.description);
+        if prev_file_name.is_empty() || prev_file_name != error.file {
+            println!("{}:", error.file);
+        }
+        println!(
+            "{} [{}]: {}({}:{}:{})",
+            error.level, error.rule, error.description, error.file, error.line_nb, error.col_nb
+        );
+        prev_file_name = error.file.clone();
     }
 }
 
@@ -138,7 +147,7 @@ pub fn parse_output(lines: Vec<String>) -> Result<(), Error> {
     }
 
     clean_errors_vector(&mut errors);
-    print_error(&errors);
+    print_errors(&errors);
 
     Ok(())
 }
