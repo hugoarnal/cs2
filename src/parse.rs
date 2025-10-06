@@ -260,11 +260,11 @@ fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
 
 /// remove duplicates by checking with PartialEq (dedup)
 fn clean_errors_vector(errors: &mut Vec<LineError>) {
-    errors.dedup();
-
     errors.sort_by(|a, b| a.line_nb.cmp(&b.line_nb));
     errors.sort_by(|a, b| a.col_nb.cmp(&b.col_nb));
     errors.sort_by(|a, b| a.file.to_lowercase().cmp(&b.file.to_lowercase()));
+
+    errors.dedup();
 }
 
 pub fn parse_output(lines: Vec<String>) -> Result<(), Error> {
