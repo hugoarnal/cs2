@@ -25,7 +25,7 @@ impl BuildSystems {
                     .output()?;
 
                 if !command.status.success() {
-                    return Err(Error::other("Error occured"));
+                    println!("Encountered an error while running make, continuing...");
                 }
 
                 let all_output = shared::merge_outputs(command.stdout, command.stderr);
