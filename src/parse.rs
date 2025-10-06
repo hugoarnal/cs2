@@ -1,5 +1,6 @@
 use std::fmt;
 use std::io::Error;
+use std::process::Command;
 use std::str::FromStr;
 
 use crate::shared;
@@ -64,6 +65,7 @@ pub struct LineError {
     level: ErrorLevel,
     rule: String,
     description: String,
+    ignore: bool,
 }
 
 /// Check for equality in file, line & col nb, level and rule
@@ -124,10 +126,12 @@ fn parse_line(line: String) -> Option<LineError> {
         level: level,
         rule: rule,
         description: description,
+        ignore: false,
     })
 }
 
 fn summary_errors(errors: &Vec<LineError>) {
+    let mut ignored_errors = 0;
     let mut errors_level = [
         (ErrorLevel::FATAL, 0),
         (ErrorLevel::MAJOR, 0),
@@ -136,6 +140,10 @@ fn summary_errors(errors: &Vec<LineError>) {
     ];
 
     for error in errors {
+        if error.ignore {
+            ignored_errors += 1;
+            continue;
+        }
         match error.level {
             ErrorLevel::FATAL => errors_level[0].1 += 1,
             ErrorLevel::MAJOR => errors_level[1].1 += 1,
@@ -144,10 +152,19 @@ fn summary_errors(errors: &Vec<LineError>) {
         };
     }
 
+    if ignored_errors > 0 {
+        println!(
+            "{}{} ignored errors{}",
+            shared::Colors::BOLD,
+            ignored_errors,
+            shared::Colors::RESET
+        );
+    }
+
     print!(
         "{}{} error(s){}: ",
         shared::Colors::BOLD,
-        errors.len(),
+        errors.len() - ignored_errors,
         shared::Colors::RESET
     );
 
@@ -158,11 +175,7 @@ fn summary_errors(errors: &Vec<LineError>) {
             ""
         };
 
-        let comma = if i < errors_level.len() - 1 {
-            ", "
-        } else {
-            ""
-        };
+        let comma = if i < errors_level.len() - 1 { ", " } else { "" };
 
         // TODO: perhaps don't show if amount < 0
         print!(
@@ -183,9 +196,14 @@ fn print_errors(errors: &Vec<LineError>) {
     let mut prev_file_name = String::new();
 
     for error in errors {
+        if error.ignore == true {
+            continue;
+        }
+
         if prev_file_name.is_empty() || prev_file_name != error.file {
             println!("{}:", error.file);
         }
+
         print!(
             "{}{} [{}]:{}",
             error.level.to_color_str(),
@@ -193,7 +211,7 @@ fn print_errors(errors: &Vec<LineError>) {
             error.rule,
             shared::Colors::RESET
         );
-        print!(" {} ", error.description);
+        print!(" {}", error.description);
         println!(
             "{}({}:{}:{}){}",
             shared::Colors::GRAY,
@@ -206,6 +224,37 @@ fn print_errors(errors: &Vec<LineError>) {
     }
 
     summary_errors(errors);
+}
+
+fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
+    let find_files = Command::new("find")
+        .args([".", "-type", "f", "-printf", "%P\\n"])
+        .output()?;
+
+    let temp_all_files = shared::split_output(find_files.stdout)?;
+    let filtered_all_files: Vec<&String> = temp_all_files
+        .iter()
+        .filter(|x| !x.is_empty())
+        .collect::<Vec<_>>();
+
+    let ignored_files = Command::new("git")
+        .arg("check-ignore")
+        .args(filtered_all_files)
+        .output()?;
+
+    if !ignored_files.status.success() {
+        return Err(Error::other("Not a .git repo"));
+    }
+
+    for ignored_file in shared::split_output(ignored_files.stdout)? {
+        for error in &mut *errors {
+            if error.file == ignored_file {
+                error.ignore = true;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// Remove duplicates with PartialEq
@@ -230,6 +279,7 @@ pub fn parse_output(lines: Vec<String>) -> Result<(), Error> {
         errors.push(line_error);
     }
 
+    verify_ignore(&mut errors)?;
     clean_errors_vector(&mut errors);
     print_errors(&errors);
 
