@@ -243,7 +243,8 @@ fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
         .output()?;
 
     if !ignored_files.status.success() {
-        return Err(Error::other("Not a .git repo"));
+        // since we're not in a git repo, it's not really important to log it.
+        return Ok(());
     }
 
     for ignored_file in shared::split_output(ignored_files.stdout)? {
@@ -257,8 +258,7 @@ fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
     Ok(())
 }
 
-/// Remove duplicates with PartialEq
-/// Sort by line_nb, col_nb and file name
+/// remove duplicates by checking with PartialEq (dedup)
 fn clean_errors_vector(errors: &mut Vec<LineError>) {
     errors.dedup();
 
