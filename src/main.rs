@@ -57,6 +57,12 @@ fn main() {
                         .short('j')
                         .help("For banana, install with parallelism")
                         .num_args(0),
+                )
+                .arg(
+                    Arg::new("force")
+                        .short('f')
+                        .help("Force update even if there is nothing new when fetching")
+                        .num_args(0),
                 ),
         )
         .subcommand(
