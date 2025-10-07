@@ -1,0 +1,24 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build release
+        run: cargo build --release
+      - name: Create release
+        uses: softprops/action-gh-release@aec2ec56f94eb8180ceec724245f64ef008b89f5
+        with:
+          draft: false
+          tag_name: ${{github.ref_name}}
+          fail_on_unmatched_files: true
+          files: ./target/release/cs2
+          name: ${{github.ref_name}}
+

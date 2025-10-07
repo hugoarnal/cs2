@@ -1,0 +1,24 @@
+name: Build
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "**.rs"
+      - "Cargo.*"
+      - ".github/workflows/build.yml"
+  pull_request:
+    types: ["opened", "synchronize", "reopened"]
+    paths:
+      - "**.rs"
+      - "Cargo.*"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - name: Build
+      run: cargo build
