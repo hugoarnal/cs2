@@ -1,0 +1,13 @@
+diff --git a/src/banana-check-repo b/src/banana-check-repo
+index 346963e..907b685 100755
+--- a/src/banana-check-repo
++++ b/src/banana-check-repo
+@@ -174,7 +174,7 @@ check_repo() {
+                 found_infractions=true
+             fi
+         fi
+-    done < <(find "$SEARCH_DIR" \( $FIND_PRUNE \) -prune -o -type f -print0)
++    done < <(find "$SEARCH_DIR" \( $FIND_PRUNE \) -prune -o -type f -printf "%P\0")
+ 
+     if [[ "$found_infractions" == "true" ]]; then
+         exit 1
