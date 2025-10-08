@@ -1,6 +1,13 @@
 use std::env;
 use std::io::Error;
+use std::path::Path;
 use std::process::Command;
+
+pub const EPICLANG_PACKAGES: [&'static str; 1] = ["/usr/local/bin/epiclang"];
+pub const BANANA_PACKAGES: [&'static str; 2] = [
+    "/usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
+    "/usr/local/bin/banana-check-repo-cs2",
+];
 
 pub fn get_temp_path(package: &str) -> String {
     format!("/tmp/cs2-{}", package)
@@ -146,4 +153,24 @@ pub fn warn_path_var(directory: &str) {
             directory
         );
     }
+}
+
+pub fn verify_package_installation(
+    package: &'static str,
+    packages: &[&str],
+    final_path: &String,
+) -> Result<(), Error> {
+    let mut condition: bool = true;
+
+    for package in packages {
+        condition = condition && Path::new(package).exists();
+    }
+
+    if condition && !Path::new(final_path).exists() {
+        return Err(Error::other(
+            format!("{} seems to be installed by a package manager, cs2 won't be able to install/update it", package).as_str(),
+        ));
+    }
+
+    Ok(())
 }

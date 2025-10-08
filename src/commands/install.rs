@@ -96,6 +96,8 @@ fn epiclang() -> Result<(), Error> {
     let temp_path = shared::get_temp_path(package);
     let final_path = shared::get_final_path(package);
 
+    shared::verify_package_installation(package, &shared::EPICLANG_PACKAGES, &final_path)?;
+
     if Path::new(&final_path).exists() {
         return Err(Error::other(
             "Already cloned and installed, use cs2 update instead",
@@ -125,6 +127,8 @@ fn banana(parallelism: bool) -> Result<(), Error> {
     let package = "banana";
     let temp_path = shared::get_temp_path(package);
     let final_path = shared::get_final_path(package);
+
+    shared::verify_package_installation(package, &shared::BANANA_PACKAGES, &final_path)?;
 
     if Path::new(&final_path).exists() {
         return Err(Error::other(
@@ -172,8 +176,21 @@ pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     };
 
     if !args.args_present() {
-        epiclang()?;
-        banana(parallelism)?;
+        // TODO: there has to be a rustier way to do this...
+        println!("Installing epiclang");
+        match epiclang() {
+            Ok(_) => {}
+            Err(e) => {
+                println!("{}", e)
+            }
+        }
+        println!("Installing banana");
+        match banana(parallelism) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("{}", e)
+            }
+        }
     };
 
     Ok(())

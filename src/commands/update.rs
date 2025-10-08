@@ -2,7 +2,7 @@ use std::{io::Error, path::Path, process::Command};
 
 use clap::ArgMatches;
 
-use crate::commands::shared;
+use crate::commands::shared::{self, BANANA_PACKAGES, EPICLANG_PACKAGES};
 
 /// Returns true if project needs to be rebuilt, false if it's already at the latest version
 fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
@@ -36,8 +36,21 @@ fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
     }
 }
 
-fn update_package(package: &str, parallelism: bool, force: bool) -> Result<(), Error> {
+fn get_installed_packages(package: &str) -> Result<&[&'static str], Error> {
+    match package {
+        "banana" => Ok(&BANANA_PACKAGES),
+        "epiclang" => Ok(&EPICLANG_PACKAGES),
+        _ => Err(Error::other(format!(
+            "Impossible to find installed packages for {}",
+            package
+        ))),
+    }
+}
+
+fn update_package(package: &'static str, parallelism: bool, force: bool) -> Result<(), Error> {
     let path = shared::get_final_path(package);
+
+    shared::verify_package_installation(package, &get_installed_packages(package)?, &path)?;
 
     if !Path::new(&path).exists() {
         return Err(Error::other(format!(
@@ -58,7 +71,13 @@ fn update_package(package: &str, parallelism: bool, force: bool) -> Result<(), E
 fn update_all(packages: &[&'static str], parallelism: bool, force: bool) -> Result<(), Error> {
     for package in packages {
         println!("Updating {}", package);
-        update_package(package, parallelism, force)?;
+        // TODO: (same as install) but there has to be a rustier way
+        match update_package(package, parallelism, force) {
+            Ok(_) => {}
+            Err(e) => {
+                println!("{}", e);
+            }
+        };
     }
     Ok(())
 }
