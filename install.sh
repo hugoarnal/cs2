@@ -6,7 +6,7 @@ set -u
 REPO_LINK="https://github.com/hugoarnal/cs2.git"
 DEFAULT_BASE_DIR="/usr/local/share/cs2"
 
-read -p "Specify installation path [default: $DEFAULT_BASE_DIR]: " BASE_DIR
+# read -p "Specify installation path [default: $DEFAULT_BASE_DIR]: " BASE_DIR
 BASE_DIR=${BASE_DIR:-$DEFAULT_BASE_DIR}
 
 sudo mkdir -p $BASE_DIR
