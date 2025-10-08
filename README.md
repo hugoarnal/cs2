@@ -10,7 +10,45 @@ Epitech Banana (v4) Coding Style Helper
 ## Features
 
 - Easily install [epiclang](https://github.com/Epitech/epiclang) & [banana-coding-style-checker](https://github.com/Epitech/banana-coding-style-checker)
-- Add the rest of the features when they're done lol <!-- TODO: do it -->
+- Remove duplicate errors[^1]
+  - Pipe current command: `make 2>&1 | cs2`
+  - `cs2 run <command>`
+- Finds your build system[^2] and builds it automatically
+
+[^1]: It seems as if header files work differently when using banana. When they are included, if there's an error in them, it prints it multiple times.
+
+[^2]: see [Supported build systems](#supported-build-systems)
+
+## Usage
+
+There are multiple ways to use `cs2`.
+
+### Build system (most common)
+
+```sh
+cs2
+```
+
+Only running `cs2` will automatically find your build system, recompile your project by using `epiclang` and `banana`.
+
+> Warning: your project must need to support changing environment variables like CC to use epiclang.
+
+#### Supported build systems:
+- GNU Makefile
+
+To be supported in the future (or send a PR to make it work :-)):
+- CMake (in the future)
+
+### Run command into cs2
+
+```
+epiclang main.c 2>&1 | cs2
+cs2 run epiclang main.c
+```
+
+Both of these commands will run `epiclang main.c` and format the error output with `cs2`.
+
+> Mark the usage of `2>&1` for piping into `cs2` which is necessary.
 
 ## Install
 
