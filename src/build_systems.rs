@@ -12,14 +12,10 @@ enum BuildSystems {
 
 impl BuildSystems {
     fn build(&self) -> Result<Vec<String>, Error> {
+        self.clean()?;
+
         match *self {
             Self::Makefile => {
-                // TODO: add option to NOT clean
-                let _ = Command::new("make")
-                    .arg("fclean")
-                    .envs(shared::DEFAULT_RUN_ENV)
-                    .output()?;
-
                 // Running default `make`
                 let command = Command::new("make")
                     .envs(shared::DEFAULT_RUN_ENV)
@@ -43,6 +39,24 @@ impl BuildSystems {
                 Ok(shared::split_output(all_output)?)
             }
             _ => Err(Error::other("Couldn't find build system")),
+        }
+    }
+
+    fn clean(&self) -> Result<(), Error> {
+        match *self {
+            Self::Makefile => {
+                // TODO: add option to NOT clean
+                println!("Running make fclean");
+
+                let _ = Command::new("make")
+                    .arg("fclean")
+                    .envs(shared::DEFAULT_RUN_ENV)
+                    .spawn()?
+                    .wait();
+
+                Ok(())
+            }
+            _ => Ok(()),
         }
     }
 }
