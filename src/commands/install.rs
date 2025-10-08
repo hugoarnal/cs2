@@ -83,6 +83,17 @@ fn verify_clang_version() -> Result<(), Error> {
             .args(["ln", "-s", "/usr/bin/clang", "/usr/local/bin/clang-20"])
             .spawn()?
             .wait();
+
+        if !Path::new("/usr/bin/clang++").exists() {
+            return Err(Error::other("Impossible to find clang++"));
+        }
+
+        // Assume that clang++ version is the same as clang (there's no reason it isn't)
+        let _ = Command::new("sudo")
+            .args(["ln", "-s", "/usr/bin/clang++", "/usr/local/bin/clang++-20"])
+            .spawn()?
+            .wait();
+
         shared::warn_path_var("/usr/local/bin");
 
         return Ok(());
