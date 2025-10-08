@@ -20,6 +20,7 @@ impl BuildSystems {
                     .envs(shared::DEFAULT_RUN_ENV)
                     .output()?;
 
+                // Running default `make`
                 let command = Command::new("make")
                     .envs(shared::DEFAULT_RUN_ENV)
                     .output()?;
@@ -28,7 +29,16 @@ impl BuildSystems {
                     println!("Encountered an error while running make, continuing...");
                 }
 
-                let all_output = shared::merge_outputs(command.stdout, command.stderr);
+                let both_std_output = shared::merge_outputs(command.stdout, command.stderr);
+
+                // Run `banana-check-repo`
+                let command = Command::new("banana-check-repo").output()?;
+
+                let all_output = if !command.status.success() {
+                    shared::merge_outputs(both_std_output, command.stdout)
+                } else {
+                    both_std_output
+                };
 
                 Ok(shared::split_output(all_output)?)
             }

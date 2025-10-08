@@ -4,13 +4,25 @@ use clap::ArgMatches;
 
 use crate::commands::shared;
 
+/// Returns true if project needs to be rebuilt, false if it's already at the latest version
 fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
     let command = format!("cd {} && git pull origin main", path);
-
     let results = Command::new("sh").args(["-c", &command]).output()?;
 
     if !results.status.success() {
-        return Err(Error::other(format!("Had problems updating {}", package)));
+        let command = format!(
+            "cd {} && git reset --hard main && git pull origin main",
+            path
+        );
+        let results = Command::new("sh").args(["-c", &command]).output()?;
+
+        if !results.status.success() {
+            return Err(Error::other(format!(
+                "Had problems updating {}: {}",
+                package,
+                String::from_utf8(results.stderr).unwrap()
+            )));
+        }
     };
 
     // absolute cinema
@@ -24,7 +36,7 @@ fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
     }
 }
 
-fn update_package(package: &str, parallelism: bool) -> Result<(), Error> {
+fn update_package(package: &str, parallelism: bool, force: bool) -> Result<(), Error> {
     let path = shared::get_final_path(package);
 
     if !Path::new(&path).exists() {
@@ -34,7 +46,7 @@ fn update_package(package: &str, parallelism: bool) -> Result<(), Error> {
         )));
     }
 
-    if pull_repo(&path, package)? {
+    if pull_repo(&path, package)? || force {
         shared::build_package(package, parallelism)?;
     } else {
         println!("Nothing to update");
@@ -43,22 +55,37 @@ fn update_package(package: &str, parallelism: bool) -> Result<(), Error> {
     Ok(())
 }
 
+fn update_all(packages: &[&'static str], parallelism: bool, force: bool) -> Result<(), Error> {
+    for package in packages {
+        println!("Updating {}", package);
+        update_package(package, parallelism, force)?;
+    }
+    Ok(())
+}
+
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
-    let parallelism = *args.get_one::<bool>("parallelism").unwrap();
     let valid_args = ["cs2", "epiclang", "banana"];
 
+    let parallelism = args.get_flag("parallelism");
+    let force = args.get_flag("force");
+
+    // TODO: remove this temporary solution to update all
+    // without args and without -f or -j
     if !args.args_present() {
-        for arg in valid_args {
-            update_package(arg, parallelism)?;
-        }
-        return Ok(());
+        return update_all(&valid_args, parallelism, force);
     }
 
+    let mut found_args = false;
     for valid_arg in valid_args {
-        if *args.get_one::<bool>(valid_arg).unwrap() {
+        if args.get_flag(valid_arg) {
             println!("Updating only {}", valid_arg);
-            update_package(valid_arg, parallelism)?;
+            update_package(valid_arg, parallelism, force)?;
+            found_args = true;
         };
+    }
+
+    if !found_args {
+        return update_all(&valid_args, parallelism, force);
     }
 
     Ok(())

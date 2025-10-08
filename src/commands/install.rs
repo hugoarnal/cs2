@@ -157,16 +157,16 @@ fn create_directory() -> Result<(), Error> {
 }
 
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
-    let parallelism = *args.get_one::<bool>("parallelism").unwrap();
+    let parallelism = args.get_flag("parallelism");
 
     create_directory()?;
     verify_clang_version()?;
 
-    if *args.get_one::<bool>("epiclang").unwrap() {
+    if args.get_flag("epiclang") {
         println!("Installing only epiclang");
         epiclang()?;
     };
-    if *args.get_one::<bool>("banana").unwrap() {
+    if args.get_flag("banana") {
         println!("Installing only banana");
         banana(parallelism)?;
     };

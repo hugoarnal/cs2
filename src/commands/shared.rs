@@ -10,6 +10,27 @@ pub fn get_final_path(package: &str) -> String {
     format!("/usr/local/share/cs2/{}", package)
 }
 
+fn patch_file(patch_name: &str, file: &str) -> Result<(), Error> {
+    let command = Command::new("patch")
+        .args([
+            "-p0",
+            "-s",
+            "-f",
+            file,
+            format!("{}/src/patches/{}", get_final_path("cs2"), patch_name).as_str(),
+        ])
+        .status()?;
+
+    if !command.success() {
+        println!("{} already applied to {}", patch_name, file);
+        return Ok(());
+    }
+
+    println!("Applied {} to {}", patch_name, file);
+
+    Ok(())
+}
+
 pub fn build_epiclang(final_path: &str) -> Result<(), Error> {
     let build_command = format!("cd {} && sudo ./manual-install.sh", final_path);
 
@@ -41,10 +62,17 @@ pub fn build_banana(final_path: &str, parallelism: bool) -> Result<(), Error> {
         return Err(Error::other("Impossible to build banana"));
     }
 
+    let banana_check_repo_file = format!("{}/src/banana-check-repo", final_path);
+
+    patch_file(
+        "banana-check-repo-cs2.patch",
+        banana_check_repo_file.as_str(),
+    )?;
+
     if !Command::new("sudo")
         .args([
             "cp",
-            format!("{}/src/banana-check-repo", final_path).as_str(),
+            banana_check_repo_file.as_str(),
             "/usr/local/bin/banana-check-repo",
         ])
         .status()?
@@ -55,7 +83,7 @@ pub fn build_banana(final_path: &str, parallelism: bool) -> Result<(), Error> {
 
     if !Command::new("sudo")
         .args([
-            "mv",
+            "cp",
             format!("{}/epiclang-plugin-banana.so", final_path).as_str(),
             "/usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
         ])
