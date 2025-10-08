@@ -64,6 +64,19 @@ pub fn build_banana(final_path: &str, parallelism: bool) -> Result<(), Error> {
 
     let banana_check_repo_file = format!("{}/src/banana-check-repo", final_path);
 
+    if !Command::new("cp")
+        .args([
+            banana_check_repo_file.as_str(),
+            format!("{}-cs2", banana_check_repo_file).as_str(),
+        ])
+        .status()?
+        .success()
+    {
+        return Err(Error::other("Impossible to create banana-check-repo-cs2"));
+    }
+
+    let banana_check_repo_file = format!("{}/src/banana-check-repo-cs2", final_path);
+
     patch_file(
         "banana-check-repo-cs2.patch",
         banana_check_repo_file.as_str(),
@@ -73,12 +86,12 @@ pub fn build_banana(final_path: &str, parallelism: bool) -> Result<(), Error> {
         .args([
             "cp",
             banana_check_repo_file.as_str(),
-            "/usr/local/bin/banana-check-repo",
+            "/usr/local/bin/banana-check-repo-cs2",
         ])
         .status()?
         .success()
     {
-        return Err(Error::other("Impossible to move banana-check-repo"));
+        return Err(Error::other("Impossible to move banana-check-repo-cs2"));
     }
 
     if !Command::new("sudo")
