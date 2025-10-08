@@ -58,7 +58,8 @@ Requirements:
 - Cargo
 - clang (>= 20)
 - CMake
-- llvm-lib
+- LLVM
+- llvm-libs
 
 Use the `install.sh` script:
 
