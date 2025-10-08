@@ -14,8 +14,9 @@ Epitech Banana (v4) Coding Style Helper
   - Pipe current command: `make 2>&1 | cs2`
   - `cs2 run <command>`
 - Finds your build system[^2] and builds it automatically
+- Ignores all errors from files in your `.gitignore`
 
-[^1]: It seems as if header files work differently when using banana. When they are included, if there's an error in them, it prints it multiple times.
+[^1]: It seems as if header files work differently when using banana. When they are included, if there's an error in them, it prints it every time the header is included.
 
 [^2]: see [Supported build systems](#supported-build-systems)
 
