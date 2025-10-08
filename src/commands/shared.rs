@@ -135,12 +135,16 @@ fn build_cs2(final_path: &str) -> Result<(), Error> {
 pub fn build_package(package: &str, parallelism: bool) -> Result<(), Error> {
     let final_path = get_final_path(package);
 
-    if package == "epiclang" {
-        build_epiclang(&final_path)?;
-    } else if package == "banana" {
-        build_banana(&final_path, parallelism)?;
-    } else if package == "cs2" {
-        build_cs2(&final_path)?;
+    match package {
+        "epiclang" => build_epiclang(&final_path)?,
+        "banana" => build_banana(&final_path, parallelism)?,
+        "cs2" => build_cs2(&final_path)?,
+        _ => {
+            return Err(Error::other(format!(
+                "Impossible to find package {}",
+                package
+            )));
+        }
     }
 
     Ok(())
