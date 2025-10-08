@@ -1,0 +1,30 @@
+# temporary banana-check-repo patch for cs2
+# this patch is only there for a bit, until a better parsing system is written
+# Patches done:
+# - Removes leading ./
+# - Adds :0:0: after file to all errors
+
+diff --git a/src/banana-check-repo b/src/banana-check-repo
+index 346963e..0aa2ce7 100755
+--- a/src/banana-check-repo
++++ b/src/banana-check-repo
+@@ -160,3 +160,3 @@ check_repo() {
+         if is_unwanted_binary "$file"; then
+-            echo "$file: [Banana] [Major] unwanted binary file (C-O1)"
++            echo "$file:0:0: [Banana] [Major] unwanted binary file (C-O1)"
+             found_infractions=true
+@@ -164,3 +164,3 @@ check_repo() {
+         elif is_unwanted_file "$filename"; then
+-            echo "$file: [Banana] [Major] unwanted file (C-O1)"
++            echo "$file:0:0: [Banana] [Major] unwanted file (C-O1)"
+             found_infractions=true
+@@ -172,3 +172,3 @@ check_repo() {
+             if [[ ! "$file_name" =~ ^[a-z]([a-z0-9_]*[a-z0-9])?$ ]] || [[ "$file_name" =~ __ ]]; then
+-                echo "$file: [Banana] [Minor] invalid file name (C-O4)"
++                echo "$file:0:0: [Banana] [Minor] invalid file name (C-O4)"
+                 found_infractions=true
+@@ -176,3 +176,3 @@ check_repo() {
+         fi
+-    done < <(find "$SEARCH_DIR" \( $FIND_PRUNE \) -prune -o -type f -print0)
++    done < <(find "$SEARCH_DIR" \( $FIND_PRUNE \) -prune -o -type f -printf "%P\0")
+

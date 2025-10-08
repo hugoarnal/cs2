@@ -65,7 +65,7 @@ pub fn build_banana(final_path: &str, parallelism: bool) -> Result<(), Error> {
     let banana_check_repo_file = format!("{}/src/banana-check-repo", final_path);
 
     patch_file(
-        "banana-check-repo-remove-leading-dot.patch",
+        "banana-check-repo-cs2.patch",
         banana_check_repo_file.as_str(),
     )?;
 
