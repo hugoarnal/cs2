@@ -17,7 +17,11 @@ fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
         let results = Command::new("sh").args(["-c", &command]).output()?;
 
         if !results.status.success() {
-            return Err(Error::other(format!("Had problems updating {}", package)));
+            return Err(Error::other(format!(
+                "Had problems updating {}: {}",
+                package,
+                String::from_utf8(results.stderr).unwrap()
+            )));
         }
     };
 
