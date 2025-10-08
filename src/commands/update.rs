@@ -4,13 +4,21 @@ use clap::ArgMatches;
 
 use crate::commands::shared;
 
+/// Returns true if project needs to be rebuilt, false if it's already at the latest version
 fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
     let command = format!("cd {} && git pull origin main", path);
-
     let results = Command::new("sh").args(["-c", &command]).output()?;
 
     if !results.status.success() {
-        return Err(Error::other(format!("Had problems updating {}", package)));
+        let command = format!(
+            "cd {} && git reset --hard main && git pull origin main",
+            path
+        );
+        let results = Command::new("sh").args(["-c", &command]).output()?;
+
+        if !results.status.success() {
+            return Err(Error::other(format!("Had problems updating {}", package)));
+        }
     };
 
     // absolute cinema
