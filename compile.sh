@@ -4,12 +4,19 @@
 set -e
 set -u
 
+BASE_DIR=$(dirname "$0")
+
+## needed for patches
+if [[ ! -d "/usr/local/share/cs2/cs2" ]]; then
+    cp -r $BASE_DIR /usr/local/share/cs2/cs2
+fi
+
 INSTALL_PATH=/usr/local/bin
 
-cd $(dirname "$0")
+cd $BASE_DIR
 cargo build --release
 
-if sudo cp -f $(dirname "$0")/target/release/cs2 $INSTALL_PATH/cs2; then
+if sudo cp -f $BASE_DIR/target/release/cs2 $INSTALL_PATH/cs2; then
     echo "Successfully compiled cs2!"
     if [[ $PATH != *"$INSTALL_PATH"* ]]; then
         echo "$INSTALL_PATH is not in your PATH environnement variable."
