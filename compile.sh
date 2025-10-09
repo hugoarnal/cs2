@@ -22,6 +22,7 @@ if sudo cp -f $BASE_DIR/target/release/cs2 $INSTALL_PATH/cs2; then
         echo "$INSTALL_PATH is not in your PATH environnement variable."
         echo "Make sure to add it before you can use cs2."
     fi
+    echo "You can now install epiclang or banana with \"cs2 update\""
 else
     echo "An error occurred, couldn't compile cs2."
 fi

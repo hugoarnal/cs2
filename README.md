@@ -9,7 +9,7 @@ Epitech Banana (v4) Coding Style Helper
 
 ## Features
 
-- Easily install [epiclang](https://github.com/Epitech/epiclang) & [banana-coding-style-checker](https://github.com/Epitech/banana-coding-style-checker)
+- Easily install [epiclang](https://github.com/Epitech/epiclang) & [banana-coding-style-checker](https://github.com/Epitech/banana-coding-style-checker) [(see here)](#installing-dependencies)
 - Remove duplicate errors[^1]
   - Pipe current command: `make 2>&1 | cs2`
   - `cs2 run <command>`
@@ -61,6 +61,8 @@ Requirements:
 - LLVM
 - llvm-libs
 
+### Installing cs2
+
 Use the `install.sh` script:
 
 ```sh
@@ -73,4 +75,38 @@ git clone https://github.com/hugoarnal/cs2.git /tmp/cs2-cs2
 sudo mkdir -p /usr/local/share/cs2
 sudo mv /tmp/cs2-cs2 /usr/local/share/cs2/cs2
 /usr/local/share/cs2/cs2/compile.sh
+```
+
+### Installing dependencies
+
+After installing cs2, you can install `epiclang` and `banana` plugin with:
+
+```sh
+cs2 install
+```
+
+Only need one? Use `cs2 install --package`:
+```sh
+cs2 install --package banana
+```
+
+> You can install `banana` faster with `-j`, like `make -j`.
+
+## Updating dependencies
+
+Update all of them:
+```sh
+cs2 update
+```
+
+Update only of of them with:
+```sh
+cs2 update --package banana
+```
+
+> You can install `banana` faster with `-j`, like `make -j`.
+
+Force rebuild/copy even with if there is not update:
+```sh
+cs2 update --package banana --force
 ```
