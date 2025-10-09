@@ -203,7 +203,7 @@ impl Packages {
         Ok(())
     }
 
-    fn get_packages(&self) -> &[&str] {
+    pub fn get_packages(&self) -> &[&str] {
         match *self {
             Self::Epiclang => &["/usr/bin/epiclang", "/usr/local/bin/epiclang"],
             Self::Banana => &[

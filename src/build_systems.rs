@@ -3,6 +3,7 @@ use std::io::Error;
 use std::path::Path;
 use std::process::Command;
 
+use crate::package::Packages;
 use crate::shared;
 
 enum BuildSystems {
@@ -64,12 +65,21 @@ impl BuildSystems {
 
 pub fn verify_packages() -> bool {
     let packages = [
-        "/usr/local/bin/epiclang",
-        "/usr/local/bin/banana-check-repo-cs2",
+        Packages::Epiclang,
+        Packages::Banana,
+        Packages::BananaCheckRepoCs2,
     ];
 
     for package in packages {
-        if !Path::new(package).exists() {
+        let mut found = false;
+
+        for path in package.get_packages() {
+            if Path::new(path).exists() {
+                found = true;
+            }
+        }
+
+        if !found {
             println!("Couldn't find {}", package);
             return false;
         }
