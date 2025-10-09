@@ -1,5 +1,6 @@
 mod build_systems;
 mod commands;
+mod package;
 mod parse;
 mod shared;
 use clap::{Arg, ArgAction, Command, command};
