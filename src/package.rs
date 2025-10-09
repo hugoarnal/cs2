@@ -241,8 +241,6 @@ impl Packages {
         let temp_path = get_temp_path(package);
         let final_path = get_final_path(package);
 
-        println!("Installing {}", package);
-
         self.verify_install()?;
 
         if Path::new(&final_path).exists() {
@@ -284,8 +282,6 @@ impl Packages {
         let package = self.as_str();
         let path = get_final_path(package);
 
-        println!("Updating {}", package);
-
         self.verify_install()?;
 
         if !Path::new(&path).exists() {
@@ -294,6 +290,8 @@ impl Packages {
                 package
             )));
         }
+
+        println!("Updating {}", package);
 
         if pull_repo(&path, self.as_str())? || force {
             self.build(parallelism)?;
