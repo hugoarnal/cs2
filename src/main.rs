@@ -110,6 +110,13 @@ fn main() {
 
                 let _ = parse::parse_output(full_input);
             } else {
+                if !build_systems::verify_packages() {
+                    println!(
+                        "Some packages seem to not be installed, make sure you ran cs2 install before"
+                    );
+                    std::process::exit(1);
+                }
+
                 let lines = match build_systems::find() {
                     Ok(lines) => lines,
                     Err(e) => {

@@ -1,5 +1,6 @@
 use std::fs;
 use std::io::Error;
+use std::path::Path;
 use std::process::Command;
 
 use crate::shared;
@@ -59,6 +60,21 @@ impl BuildSystems {
             _ => Ok(()),
         }
     }
+}
+
+pub fn verify_packages() -> bool {
+    let packages = [
+        "/usr/local/bin/epiclang",
+        "/usr/local/bin/banana-check-repo-cs2",
+    ];
+
+    for package in packages {
+        if !Path::new(package).exists() {
+            println!("Couldn't find {}", package);
+            return false;
+        }
+    }
+    true
 }
 
 pub fn find() -> Result<Vec<String>, Error> {
