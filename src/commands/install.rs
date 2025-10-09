@@ -98,6 +98,10 @@ fn verify_clangpp_version() -> Result<(), Error> {
         return Err(Error::other("Impossible to find clang++"));
     }
 
+    if Path::new("/usr/local/bin/clang++-20").exists() {
+        return Ok(());
+    }
+
     // Assume that clang++ version is the same as clang (there's no reason it isn't)
     let _ = Command::new("sudo")
         .args(["ln", "-s", "/usr/bin/clang++", "/usr/local/bin/clang++-20"])
