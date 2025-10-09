@@ -180,6 +180,26 @@ fn create_directory() -> Result<(), Error> {
     };
 }
 
+fn install_single_package(package: &str, parallelism: bool) -> Result<(), Error> {
+    println!("Installing {}", package);
+    match package {
+        "epiclang" => epiclang(),
+        "banana" => banana(parallelism),
+        _ => Err(Error::other("Couldn't find package")),
+    }
+}
+
+fn install_all(parallelism: bool) -> Result<(), Error> {
+    let all_packages = ["epiclang", "banana"];
+
+    for package in all_packages {
+        if let Err(e) = install_single_package(package, parallelism) {
+            println!("{}", e);
+        };
+    }
+    Ok(())
+}
+
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     let parallelism = args.get_flag("parallelism");
 
@@ -187,32 +207,9 @@ pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     verify_clang_version()?;
     verify_clangpp_version()?;
 
-    if args.get_flag("epiclang") {
-        println!("Installing only epiclang");
-        epiclang()?;
-    };
-    if args.get_flag("banana") {
-        println!("Installing only banana");
-        banana(parallelism)?;
-    };
+    if let Some(package) = args.get_one::<String>("package") {
+        return install_single_package(&package.to_ascii_lowercase(), parallelism);
+    }
 
-    if !args.args_present() {
-        // TODO: there has to be a rustier way to do this...
-        println!("Installing epiclang");
-        match epiclang() {
-            Ok(_) => {}
-            Err(e) => {
-                println!("{}", e)
-            }
-        }
-        println!("Installing banana");
-        match banana(parallelism) {
-            Ok(_) => {}
-            Err(e) => {
-                println!("{}", e)
-            }
-        }
-    };
-
-    Ok(())
+    return install_all(parallelism);
 }

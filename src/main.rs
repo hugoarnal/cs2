@@ -13,16 +13,10 @@ fn main() {
             Command::new("install")
                 .about("Installs all the dependencies needed")
                 .arg(
-                    Arg::new("epiclang")
-                        .long("epiclang")
-                        .help("Only install epiclang")
-                        .num_args(0),
-                )
-                .arg(
-                    Arg::new("banana")
-                        .long("banana")
-                        .help("Only install banana")
-                        .num_args(0),
+                    Arg::new("package")
+                        .long("package")
+                        .help("Only install a certain package")
+                        .num_args(1),
                 )
                 .arg(
                     Arg::new("parallelism")
