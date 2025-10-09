@@ -160,14 +160,14 @@ pub fn warn_path_var(directory: &str) {
 }
 
 pub fn verify_package_installation(
-    package: &'static str,
+    package: &str,
     packages: &[&str],
     final_path: &String,
 ) -> Result<(), Error> {
     let mut condition: bool = true;
 
-    for package in packages {
-        condition = condition && Path::new(package).exists();
+    for package_name in packages {
+        condition = condition && Path::new(package_name).exists();
     }
 
     if condition && !Path::new(final_path).exists() {

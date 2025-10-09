@@ -47,7 +47,7 @@ fn get_installed_packages(package: &str) -> Result<&[&'static str], Error> {
     }
 }
 
-fn update_package(package: &'static str, parallelism: bool, force: bool) -> Result<(), Error> {
+fn update_package(package: &str, parallelism: bool, force: bool) -> Result<(), Error> {
     let path = shared::get_final_path(package);
 
     shared::verify_package_installation(package, &get_installed_packages(package)?, &path)?;
@@ -71,12 +71,8 @@ fn update_package(package: &'static str, parallelism: bool, force: bool) -> Resu
 fn update_all(packages: &[&'static str], parallelism: bool, force: bool) -> Result<(), Error> {
     for package in packages {
         println!("Updating {}", package);
-        // TODO: (same as install) but there has to be a rustier way
-        match update_package(package, parallelism, force) {
-            Ok(_) => {}
-            Err(e) => {
-                println!("{}", e);
-            }
+        if let Err(e) = update_package(package, parallelism, force) {
+            println!("{}", e);
         };
     }
     Ok(())
@@ -88,24 +84,9 @@ pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     let parallelism = args.get_flag("parallelism");
     let force = args.get_flag("force");
 
-    // TODO: remove this temporary solution to update all
-    // without args and without -f or -j
-    if !args.args_present() {
-        return update_all(&valid_args, parallelism, force);
+    if let Some(package) = args.get_one::<String>("package") {
+        return update_package(&package.to_ascii_lowercase(), parallelism, force);
     }
 
-    let mut found_args = false;
-    for valid_arg in valid_args {
-        if args.get_flag(valid_arg) {
-            println!("Updating only {}", valid_arg);
-            update_package(valid_arg, parallelism, force)?;
-            found_args = true;
-        };
-    }
-
-    if !found_args {
-        return update_all(&valid_args, parallelism, force);
-    }
-
-    Ok(())
+    return update_all(&valid_args, parallelism, force);
 }

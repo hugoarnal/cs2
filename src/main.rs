@@ -35,22 +35,10 @@ fn main() {
             Command::new("update")
                 .about("Update cs2 and the dependencies")
                 .arg(
-                    Arg::new("cs2")
-                        .long("cs2")
-                        .help("Only update cs2")
-                        .num_args(0),
-                )
-                .arg(
-                    Arg::new("epiclang")
-                        .long("epiclang")
-                        .help("Only update epiclang")
-                        .num_args(0),
-                )
-                .arg(
-                    Arg::new("banana")
-                        .long("banana")
-                        .help("Only update banana")
-                        .num_args(0),
+                    Arg::new("package")
+                        .long("package")
+                        .help("Only install a certain package")
+                        .num_args(1),
                 )
                 .arg(
                     Arg::new("parallelism")
