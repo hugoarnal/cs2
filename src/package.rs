@@ -207,6 +207,7 @@ impl Packages {
         match *self {
             Self::Epiclang => &["/usr/bin/epiclang", "/usr/local/bin/epiclang"],
             Self::Banana => &[
+                "/usr/lib/epiclang/plugins/epitech-plugin-banana.so",
                 "/usr/lib/epiclang/plugins/epiclang-plugin-banana.so",
                 "/usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
             ],
