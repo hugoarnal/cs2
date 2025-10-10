@@ -8,7 +8,7 @@ BASE_DIR=$(dirname "$0")
 
 ## needed for patches
 if [[ ! -d "/usr/local/share/cs2/cs2" ]]; then
-    sudo mkdir -p /usr/local/share/cs2
+    sudo install -dm755 /usr/local/share/cs2
     sudo cp -r $BASE_DIR /usr/local/share/cs2/cs2
 fi
 
@@ -17,7 +17,7 @@ INSTALL_PATH=/usr/local/bin
 cd $BASE_DIR
 cargo build --release
 
-if sudo cp -f $BASE_DIR/target/release/cs2 $INSTALL_PATH/cs2; then
+if sudo install -Dm755 $BASE_DIR/target/release/cs2 $INSTALL_PATH/cs2; then
     echo "Successfully compiled cs2!"
     if [[ $PATH != *"$INSTALL_PATH"* ]]; then
         echo "$INSTALL_PATH is not in your PATH environnement variable."

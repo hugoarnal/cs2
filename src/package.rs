@@ -8,7 +8,6 @@ use crate::commands::{
     shared::{get_final_path, get_temp_path, warn_path_var},
     update::pull_repo,
 };
-use crate::shared::create_directory;
 
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
@@ -150,15 +149,10 @@ impl Packages {
                     return Err(Error::other("Impossible to build banana"));
                 }
 
-                let plugins_dir = "/usr/local/lib/epiclang/plugins";
-
-                if !Path::new(plugins_dir).exists() {
-                    create_directory(plugins_dir)?;
-                }
-
                 if !Command::new("sudo")
                     .args([
-                        "cp",
+                        "install",
+                        "-Dm755",
                         format!("{}/epiclang-plugin-banana.so", final_path).as_str(),
                         "/usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
                     ])
@@ -188,7 +182,12 @@ impl Packages {
                 let file_name = format!("{}/src/banana-check-repo", final_path);
 
                 if !Command::new("sudo")
-                    .args(["cp", file_name.as_str(), "/usr/local/bin/banana-check-repo"])
+                    .args([
+                        "install",
+                        "-Dm755",
+                        file_name.as_str(),
+                        "/usr/local/bin/banana-check-repo",
+                    ])
                     .status()?
                     .success()
                 {
@@ -213,7 +212,7 @@ impl Packages {
                 patch_file("banana-check-repo-cs2.patch", tmp_file_name)?;
 
                 if !Command::new("sudo")
-                    .args(["cp", tmp_file_name, file_name])
+                    .args(["install", "-Dm755", tmp_file_name, file_name])
                     .status()?
                     .success()
                 {
