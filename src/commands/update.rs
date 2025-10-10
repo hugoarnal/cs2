@@ -47,9 +47,20 @@ fn update_all(parallelism: bool, force: bool) -> Result<(), Error> {
     Ok(())
 }
 
+/// This function is unused, I know
+/// It's there for future updates and especially the depreciation of
+/// `banana-check-repo-cs2`
+/// Does cleanup work, checks if there are files that shouldn't be there,
+/// or should be moved and such.
+fn pre_update() -> Result<(), Error> {
+    Ok(())
+}
+
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     let parallelism = args.get_flag("parallelism");
     let force = args.get_flag("force");
+
+    let _ = pre_update()?;
 
     if let Some(package_str) = args.get_one::<String>("package") {
         let package = Packages::from_str(package_str)?;

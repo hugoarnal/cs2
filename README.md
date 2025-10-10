@@ -92,6 +92,13 @@ cs2 install --package banana
 
 > You can install `banana` faster with `-j`, like `make -j`.
 
+> [!NOTE]
+> [Ubuntu dump](https://github.com/Epitech/dump) installs `epiclang` and `banana` by default.
+>
+> It is **normal** if you get the `X seems to be installed by a package manager` warning.
+>
+> If you wish to get rid of this warning, you can uninstall the package that's causing this warning but it is not recommended.
+
 ## Updating dependencies
 
 Update all of them:
