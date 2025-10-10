@@ -267,7 +267,7 @@ fn clean_errors_vector(errors: &mut Vec<LineError>) {
     errors.dedup();
 }
 
-pub fn parse_output(lines: Vec<String>) -> Result<(), Error> {
+pub fn parse_output(lines: Vec<String>, dont_ignore: bool) -> Result<(), Error> {
     let mut errors: Vec<LineError> = Vec::new();
 
     for line in lines {
@@ -279,7 +279,9 @@ pub fn parse_output(lines: Vec<String>) -> Result<(), Error> {
         errors.push(line_error);
     }
 
-    verify_ignore(&mut errors)?;
+    if !dont_ignore {
+        verify_ignore(&mut errors)?;
+    }
     clean_errors_vector(&mut errors);
     print_errors(&errors);
 

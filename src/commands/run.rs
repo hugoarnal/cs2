@@ -14,7 +14,7 @@ pub fn run(command_args: Vec<&String>) -> Result<(), Error> {
 
     let all_output = shared::merge_outputs(outputs.stdout, outputs.stderr);
 
-    parse::parse_output(shared::split_output(all_output)?)?;
+    parse::parse_output(shared::split_output(all_output)?, true)?;
 
     if !outputs.status.success() {
         return Err(Error::other(format!(
