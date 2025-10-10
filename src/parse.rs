@@ -227,27 +227,22 @@ fn print_errors(errors: &Vec<LineError>) {
 }
 
 fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
-    let find_files = Command::new("find")
-        .args([".", "-type", "f", "-printf", "%P\\n"])
-        .output()?;
+    let command = Command::new("git").args(["clean", "-ndX"]).output()?;
 
-    let temp_all_files = shared::split_output(find_files.stdout)?;
-    let filtered_all_files: Vec<&String> = temp_all_files
-        .iter()
-        .filter(|x| !x.is_empty())
-        .collect::<Vec<_>>();
-
-    let ignored_files = Command::new("git")
-        .arg("check-ignore")
-        .args(filtered_all_files)
-        .output()?;
-
-    if !ignored_files.status.success() {
-        // since we're not in a git repo, it's not really important to log it.
+    if !command.status.success() {
+        // We're probably not in a git repo, no need to error out.
         return Ok(());
     }
 
-    for ignored_file in shared::split_output(ignored_files.stdout)? {
+    let ignored_files = String::from_utf8(command.stdout)
+        .unwrap()
+        .replace("Would remove ", "");
+
+    for ignored_file in ignored_files
+        .split("\n")
+        .map(|f| String::from(f))
+        .collect::<Vec<_>>()
+    {
         for error in &mut *errors {
             if error.file == ignored_file {
                 error.ignore = true;
