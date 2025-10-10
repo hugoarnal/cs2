@@ -21,14 +21,16 @@ pub enum Packages {
 }
 
 fn patch_file(patch_name: &str, file: &str) -> Result<(), Error> {
+    let patch_path = format!("{}/src/patches/{}", get_final_path("cs2"), patch_name);
+
+    if !Path::new(&patch_path).exists() {
+        return Err(Error::other(
+            "Impossible to find patch, try running cs2's installation script (install.sh) or compilation script (compile.sh)",
+        ));
+    }
+
     let command = Command::new("patch")
-        .args([
-            "-p0",
-            "-s",
-            "-f",
-            file,
-            format!("{}/src/patches/{}", get_final_path("cs2"), patch_name).as_str(),
-        ])
+        .args(["-p0", "-s", "-f", file, &patch_path])
         .status()?;
 
     if !command.success() {
