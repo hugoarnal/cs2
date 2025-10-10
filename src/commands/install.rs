@@ -7,6 +7,7 @@ use clap::ArgMatches;
 use crate::{
     commands::shared::{get_final_path, warn_path_var},
     package::Packages,
+    shared::create_directory,
 };
 
 /// if clang-20 doesn't exist, check that clang installed version is `> 20`
@@ -76,21 +77,6 @@ fn verify_clangpp_version() -> Result<(), Error> {
     Ok(())
 }
 
-fn create_directory() -> Result<(), Error> {
-    let path = get_final_path("");
-
-    if Path::new(&path).exists() {
-        return Ok(());
-    };
-
-    match Command::new("sudo").args(["mkdir", "-p", &path]).status() {
-        Ok(_) => {
-            return Ok(());
-        }
-        Err(e) => return Err(e),
-    };
-}
-
 fn install_all(parallelism: bool) -> Result<(), Error> {
     let all_packages = [Packages::Epiclang, Packages::Banana];
 
@@ -105,7 +91,7 @@ fn install_all(parallelism: bool) -> Result<(), Error> {
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     let parallelism = args.get_flag("parallelism");
 
-    create_directory()?;
+    create_directory(get_final_path("").as_str())?;
     verify_clang_version()?;
     verify_clangpp_version()?;
 

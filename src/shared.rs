@@ -1,5 +1,7 @@
 use std::fmt;
 use std::io::Error;
+use std::path::Path;
+use std::process::Command;
 
 pub const BANANA_ERROR_PREFIX: &str = "[Banana] ";
 pub const DEFAULT_RUN_ENV: [(&str, &str); 1] = [("CC", "epiclang")];
@@ -50,4 +52,18 @@ pub fn merge_outputs(stdout: Vec<u8>, stderr: Vec<u8>) -> Vec<u8> {
     stderr.iter().for_each(|c| merged.push(*c));
 
     merged
+}
+
+/// similar to fs::create_dir_all except with sudo privileges
+pub fn create_directory(path: &str) -> Result<(), Error> {
+    if Path::new(&path).exists() {
+        return Ok(());
+    };
+
+    match Command::new("sudo").args(["mkdir", "-p", &path]).status() {
+        Ok(_) => {
+            return Ok(());
+        }
+        Err(e) => return Err(e),
+    };
 }

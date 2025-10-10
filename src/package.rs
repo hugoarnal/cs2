@@ -8,6 +8,7 @@ use crate::commands::{
     shared::{get_final_path, get_temp_path, warn_path_var},
     update::pull_repo,
 };
+use crate::shared::create_directory;
 
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
@@ -149,6 +150,12 @@ impl Packages {
                     return Err(Error::other("Impossible to build banana"));
                 }
 
+                let plugins_dir = "/usr/local/lib/epiclang/plugins";
+
+                if !Path::new(plugins_dir).exists() {
+                    create_directory(plugins_dir)?;
+                }
+
                 if !Command::new("sudo")
                     .args([
                         "cp",
@@ -162,47 +169,62 @@ impl Packages {
                         "Impossible to move banana plugin to the plugin directory",
                     ));
                 }
+
+                // checks that banana-check-repo is installed or "builds" it if it isn't
+                // then builds banana-check-repo-cs2
+                if Packages::BananaCheckRepo.verify_install().is_ok() {
+                    Packages::BananaCheckRepo.build(parallelism)?;
+                }
+                Packages::BananaCheckRepoCs2.build(parallelism)?;
             }
             Self::BananaCheckRepo => {
-                // TODO:
+                let final_path = get_final_path("banana");
+                let file_name = format!("{}/src/banana-check-repo", final_path);
+
+                if !Command::new("sudo")
+                    .args(["cp", file_name.as_str(), "/usr/local/bin/banana-check-repo"])
+                    .status()?
+                    .success()
+                {
+                    return Err(Error::other("Impossible to move banana-check-repo"));
+                }
             }
             Self::BananaCheckRepoCs2 => {
-                // TODO: get current install of banana-check-repo
-                let final_path = get_final_path("banana");
-                let banana_check_repo_file = format!("{}/src/banana-check-repo", final_path);
+                let bcr_file_name = Packages::BananaCheckRepo
+                    .get_installed_package()
+                    .ok_or(Error::other("Impossible to find banana-check-repo"))?;
+                let tmp_file_name = "/tmp/banana-check-repo-cs2";
+                let file_name = "/usr/local/bin/banana-check-repo-cs2";
 
                 if !Command::new("cp")
-                    .args([
-                        banana_check_repo_file.as_str(),
-                        format!("{}-cs2", banana_check_repo_file).as_str(),
-                    ])
+                    .args([bcr_file_name, tmp_file_name])
                     .status()?
                     .success()
                 {
                     return Err(Error::other("Impossible to create banana-check-repo-cs2"));
                 }
 
-                let banana_check_repo_file = format!("{}/src/banana-check-repo-cs2", final_path);
-
-                patch_file(
-                    "banana-check-repo-cs2.patch",
-                    banana_check_repo_file.as_str(),
-                )?;
+                patch_file("banana-check-repo-cs2.patch", tmp_file_name)?;
 
                 if !Command::new("sudo")
-                    .args([
-                        "cp",
-                        banana_check_repo_file.as_str(),
-                        "/usr/local/bin/banana-check-repo-cs2",
-                    ])
+                    .args(["cp", tmp_file_name, file_name])
                     .status()?
                     .success()
                 {
-                    return Err(Error::other("Impossible to move banana-check-repo-cs2"));
+                    return Err(Error::other("Impossible to install banana-check-repo-cs2"));
                 }
             }
         }
         Ok(())
+    }
+
+    fn get_installed_package(&self) -> Option<&str> {
+        for package in self.get_packages() {
+            if Path::new(package).exists() {
+                return Some(package);
+            }
+        }
+        None
     }
 
     pub fn get_packages(&self) -> &[&str] {
