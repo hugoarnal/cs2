@@ -1,48 +1,13 @@
-use std::io::Error;
 use std::path::Path;
 use std::process::Command;
+use std::{io::Error, str::FromStr};
 
 use clap::ArgMatches;
 
-use crate::commands::shared;
-
-const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
-const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
-
-fn pull_repo(link: &str, temp_path: &str) -> Result<(), Error> {
-    if !Command::new("git")
-        .args(["clone", link, temp_path])
-        .status()?
-        .success()
-    {
-        return Err(Error::other(format!(
-            "Impossible to clone {}, make sure you have the permissions to do so",
-            link
-        )));
-    };
-
-    return Ok(());
-}
-
-fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<(), Error> {
-    let final_path_str = final_path.to_str().unwrap();
-
-    if final_path.exists() {
-        return Ok(());
-    }
-
-    if !Command::new("sudo")
-        .args(["mv", temp_path, final_path_str])
-        .status()?
-        .success()
-    {
-        return Err(Error::other(format!(
-            "Impossible to move to {}",
-            final_path_str
-        )));
-    };
-    Ok(())
-}
+use crate::{
+    commands::shared::{get_final_path, warn_path_var},
+    package::Packages,
+};
 
 /// if clang-20 doesn't exist, check that clang installed version is `> 20`
 /// if it is, create symlink for clang-20 in `/usr/local/bin`
@@ -84,7 +49,7 @@ fn verify_clang_version() -> Result<(), Error> {
             .spawn()?
             .wait();
 
-        shared::warn_path_var("/usr/local/bin");
+        warn_path_var("/usr/local/bin");
 
         return Ok(());
     }
@@ -111,62 +76,8 @@ fn verify_clangpp_version() -> Result<(), Error> {
     Ok(())
 }
 
-fn epiclang() -> Result<(), Error> {
-    let package = "epiclang";
-    let temp_path = shared::get_temp_path(package);
-    let final_path = shared::get_final_path(package);
-
-    shared::verify_package_installation(package, &shared::EPICLANG_PACKAGES, &final_path)?;
-
-    if Path::new(&final_path).exists() {
-        return Err(Error::other(
-            "Already cloned and installed, use cs2 update instead",
-        ));
-    }
-
-    pull_repo(EPICLANG_REPO, temp_path.as_str())?;
-
-    if !Command::new("chmod")
-        .args(["+x", format!("{}/manual-install.sh", temp_path).as_str()])
-        .status()?
-        .success()
-    {
-        return Err(Error::other("Couldn't chmod manual-install.sh"));
-    }
-
-    move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
-
-    shared::build_epiclang(&final_path)?;
-
-    shared::warn_path_var("/usr/local/bin");
-
-    return Ok(());
-}
-
-fn banana(parallelism: bool) -> Result<(), Error> {
-    let package = "banana";
-    let temp_path = shared::get_temp_path(package);
-    let final_path = shared::get_final_path(package);
-
-    shared::verify_package_installation(package, &shared::BANANA_PACKAGES, &final_path)?;
-
-    if Path::new(&final_path).exists() {
-        return Err(Error::other(
-            "Already cloned and installed, use cs2 update instead",
-        ));
-    }
-
-    pull_repo(BANANA_REPO, temp_path.as_str())?;
-
-    move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
-
-    shared::build_banana(&final_path, parallelism)?;
-
-    return Ok(());
-}
-
 fn create_directory() -> Result<(), Error> {
-    let path = shared::get_final_path("");
+    let path = get_final_path("");
 
     if Path::new(&path).exists() {
         return Ok(());
@@ -180,20 +91,11 @@ fn create_directory() -> Result<(), Error> {
     };
 }
 
-fn install_single_package(package: &str, parallelism: bool) -> Result<(), Error> {
-    println!("Installing {}", package);
-    match package {
-        "epiclang" => epiclang(),
-        "banana" => banana(parallelism),
-        _ => Err(Error::other("Couldn't find package")),
-    }
-}
-
 fn install_all(parallelism: bool) -> Result<(), Error> {
-    let all_packages = ["epiclang", "banana"];
+    let all_packages = [Packages::Epiclang, Packages::Banana];
 
     for package in all_packages {
-        if let Err(e) = install_single_package(package, parallelism) {
+        if let Err(e) = package.install(parallelism) {
             println!("{}", e);
         };
     }
@@ -207,8 +109,9 @@ pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     verify_clang_version()?;
     verify_clangpp_version()?;
 
-    if let Some(package) = args.get_one::<String>("package") {
-        return install_single_package(&package.to_ascii_lowercase(), parallelism);
+    if let Some(package_str) = args.get_one::<String>("package") {
+        let package = Packages::from_str(package_str)?;
+        return package.install(parallelism);
     }
 
     return install_all(parallelism);
