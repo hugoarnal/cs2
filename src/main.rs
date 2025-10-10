@@ -54,6 +54,12 @@ fn main() {
                 .about("Run your command through the coding style checker")
                 .arg(Arg::new("command").action(ArgAction::Append)),
         )
+        .arg(
+            Arg::new("no-ignore")
+                .long("no-ignore")
+                .help("Disable checking for files ignored by git")
+                .num_args(0),
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -126,7 +132,7 @@ fn main() {
                     }
                 };
 
-                match parse::parse_output(lines, false) {
+                match parse::parse_output(lines, matches.get_flag("no-ignore")) {
                     Ok(_) => {}
                     Err(e) => {
                         println!("{}", e);

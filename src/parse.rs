@@ -154,7 +154,7 @@ fn summary_errors(errors: &Vec<LineError>) {
 
     if ignored_errors > 0 {
         println!(
-            "{}{} ignored errors{}",
+            "{}{} ignored errors{} (use --no-ignore to see them)",
             shared::Colors::BOLD,
             ignored_errors,
             shared::Colors::RESET
