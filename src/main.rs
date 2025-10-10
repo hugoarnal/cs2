@@ -3,7 +3,7 @@ mod commands;
 mod package;
 mod parse;
 mod shared;
-use clap::{Arg, ArgAction, Command, command};
+use clap::{command, Arg, ArgAction, Command};
 use std::io::{BufRead, IsTerminal};
 
 // TODO: simplify arguments in install & update
