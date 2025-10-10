@@ -109,7 +109,7 @@ fn main() {
                     }
                 }
 
-                let _ = parse::parse_output(full_input);
+                let _ = parse::parse_output(full_input, true);
             } else {
                 if !build_systems::verify_packages() {
                     println!(
@@ -126,7 +126,7 @@ fn main() {
                     }
                 };
 
-                match parse::parse_output(lines) {
+                match parse::parse_output(lines, false) {
                     Ok(_) => {}
                     Err(e) => {
                         println!("{}", e);
