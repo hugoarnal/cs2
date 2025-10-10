@@ -179,6 +179,12 @@ impl Packages {
             }
             Self::BananaCheckRepo => {
                 let final_path = get_final_path("banana");
+                if !Path::new(&final_path).exists() {
+                    return Err(Error::other(
+                        "Impossible to find banana repo, are you sure it is installed?",
+                    ));
+                }
+
                 let file_name = format!("{}/src/banana-check-repo", final_path);
 
                 if !Command::new("sudo")
@@ -294,7 +300,7 @@ impl Packages {
                 clone_repo(BANANA_REPO, temp_path.as_str())?;
                 move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
             }
-            _ => return Err(Error::other("Cannot install package")),
+            _ => {}
         }
 
         self.build(parallelism)?;
