@@ -1,4 +1,4 @@
-use std::{io::Error, process::Command, str::FromStr};
+use std::{io::Error, path::Path, process::Command, str::FromStr};
 
 use crate::package::Packages;
 
@@ -47,12 +47,17 @@ fn update_all(parallelism: bool, force: bool) -> Result<(), Error> {
     Ok(())
 }
 
-/// This function is unused, I know
 /// It's there for future updates and especially the depreciation of
 /// `banana-check-repo-cs2`
 /// Does cleanup work, checks if there are files that shouldn't be there,
 /// or should be moved and such.
+/// Doesn't actually remove them for you, but suggests that they can be removed.
 fn pre_update() -> Result<(), Error> {
+    if Path::new("/usr/local/bin/banana-check-repo-cs2").exists() {
+        println!("cs2 no longer uses /usr/local/bin/banana-check-repo-cs2");
+        println!("You can safely remove this file from your computer with:");
+        println!("$ sudo rm /usr/local/bin/banana-check-repo-cs2 (this wasn't ran, it's up to you to do it.)");
+    }
     Ok(())
 }
 
