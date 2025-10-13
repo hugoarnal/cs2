@@ -61,8 +61,8 @@ impl ErrorLevel {
 #[derive(Clone)]
 pub struct LineError {
     file: String,
-    line_nb: u32,
-    col_nb: u32,
+    line_nb: Option<u32>,
+    col_nb: Option<u32>,
     level: ErrorLevel,
     rule: String,
     description: String,
@@ -97,20 +97,20 @@ fn parse_line(line: String) -> Option<LineError> {
     let re = Regex::new(
         r"(?m)^([^:]+):?([0-9]*):?([0-9]*):.*(Minor|Major|Info|Fatal)] (.*?) \(([A-Z]-[A-Z][0-9]).*$",
     );
-    for (_, [file, line_nb_s, col_nb_s, level_text, description, rule]) in re
+    for (_, [file, line_nb, col_nb, level_text, description, rule]) in re
         .expect("REASON")
         .captures_iter(&line)
         .map(|c| c.extract())
     {
-        let line_nb: u32 = if line_nb_s.is_empty() {
-            u32::MIN
+        let line_nb: Option<u32> = if line_nb.is_empty() {
+            None
         } else {
-            line_nb_s.to_string().parse().unwrap()
+            Some(line_nb.to_string().parse().unwrap())
         };
-        let col_nb: u32 = if col_nb_s.is_empty() {
-            u32::MIN
+        let col_nb: Option<u32> = if col_nb.is_empty() {
+            None
         } else {
-            col_nb_s.to_string().parse().unwrap()
+            Some(col_nb.to_string().parse().unwrap())
         };
         let file = if file.starts_with("./") {
             skip_leading_dot(file)
@@ -212,14 +212,21 @@ fn print_errors(errors: &Vec<LineError>) {
             shared::Colors::RESET
         );
         print!(" {} ", error.description);
-        println!(
-            "{}({}:{}:{}){}",
-            shared::Colors::GRAY,
-            error.file,
-            error.line_nb,
-            error.col_nb,
-            shared::Colors::RESET
-        );
+        print!("{}", shared::Colors::GRAY);
+        print!("({}", error.file);
+        match error.line_nb {
+            Some(line_nb) => {
+                print!(":{}", line_nb);
+            }
+            None => {}
+        }
+        match error.col_nb {
+            Some(col_nb) => {
+                print!(":{}", col_nb);
+            }
+            None => {}
+        }
+        println!("){}", shared::Colors::RESET);
         prev_file_name = error.file.clone();
     }
 
