@@ -13,16 +13,17 @@ enum BuildSystems {
 }
 
 impl BuildSystems {
-    fn build(&self) -> Result<Vec<String>, Error> {
+    fn build(&self, parallelism: String) -> Result<Vec<String>, Error> {
         self.clean()?;
 
         match *self {
             Self::Makefile => {
                 // Running default `make`
-                let command = Command::new("make")
-                    .envs(shared::DEFAULT_RUN_ENV)
-                    .output()?;
+                let mut command = Command::new("make");
+                command.envs(shared::DEFAULT_RUN_ENV);
+                command.envs([("MAKEFLAGS", format!("-j{} -Otarget", parallelism).as_str())]);
 
+                let command = command.output()?;
                 if !command.status.success() {
                     println!("Encountered an error while running make, continuing...");
                 }
@@ -82,7 +83,7 @@ pub fn verify_packages() -> bool {
     true
 }
 
-pub fn find() -> Result<Vec<String>, Error> {
+pub fn find(parallelism: String) -> Result<Vec<String>, Error> {
     let paths = fs::read_dir("./")?;
 
     let mut build_system = BuildSystems::None;
@@ -97,5 +98,5 @@ pub fn find() -> Result<Vec<String>, Error> {
         }
     }
 
-    build_system.build()
+    build_system.build(parallelism)
 }

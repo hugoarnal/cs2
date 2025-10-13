@@ -69,6 +69,14 @@ fn main() {
                 .help("Disable checking for files ignored by git")
                 .num_args(0),
         )
+        .arg(
+            Arg::new("parallelism")
+                .short('j')
+                .help("Compile project with, if possible, parallelism")
+                .default_value("1")
+                .default_missing_value(&jobs_amount)
+                .num_args(0..=1),
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -133,7 +141,12 @@ fn main() {
                     std::process::exit(1);
                 }
 
-                let lines = match build_systems::find() {
+                let lines = match build_systems::find(
+                    matches
+                        .get_one::<String>("parallelism")
+                        .unwrap()
+                        .to_string(),
+                ) {
                     Ok(lines) => lines,
                     Err(e) => {
                         println!("{}", e);
