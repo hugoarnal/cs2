@@ -9,7 +9,7 @@ Epitech Banana (v4) Coding Style Helper
 
 ## Features
 
-- Easily install [epiclang](https://github.com/Epitech/epiclang) & [banana-coding-style-checker](https://github.com/Epitech/banana-coding-style-checker) [(see here)](#installing-dependencies)
+- Easily install [epiclang](https://github.com/Epitech/epiclang) & [banana-coding-style-checker](https://github.com/Epitech/banana-coding-style-checker) [(see here)](#installingupdating-packages)
 - Remove duplicate errors[^1]
   - Pipe current command: `make 2>&1 | cs2`
   - `cs2 run <command>`
@@ -33,6 +33,21 @@ cs2
 Only running `cs2` will automatically find your build system, recompile your project by using `epiclang` and `banana`.
 
 > Warning: your project must need to support changing environment variables like CC to use epiclang.
+
+#### Flags
+
+Enable parallelism with `-j`
+
+```sh
+cs2 -j
+cs2 -j2 # You can specify the amount of threads like that
+```
+
+Don't ignore `.gitignore` errors (`--no-ignore`)
+
+```sh
+cs2 --no-ignore
+```
 
 #### Supported build systems:
 - GNU Makefile
@@ -77,43 +92,41 @@ sudo mkdir -p /usr/local/share/cs2
 sudo mv /tmp/cs2-cs2 /usr/local/share/cs2/cs2
 ```
 
-### Installing dependencies
+### Installing/Updating packages
 
-After installing cs2, you can install `epiclang` and `banana` plugin with:
+After installing cs2, you can install `epiclang` package and `banana` plugin with:
 
 ```sh
 cs2 install
 ```
 
-Only need one? Use `cs2 install --package`:
+You can update the packages with:
 ```sh
-cs2 install --package banana
+cs2 update
 ```
 
-> You can install `banana` faster with `-j`, like `make -j`.
+Only need to update a single package? Use `cs2 install/update --package`:
+```sh
+cs2 install --package banana
+cs2 update --package banana
+```
+
+Parallelism is supported to install `banana` faster:
+
+See [Flags section of Build system](#flags) to know more about `-j` flags.
+```sh
+cs2 install --package banana -j
+cs2 update --package banana -j
+```
+
+Force rebuild/copy (force build even with if there is no update) (`cs2 update` only):
+```sh
+cs2 update --package banana --force
+```
 
 > [!NOTE]
 > [Ubuntu dump](https://github.com/Epitech/dump) installs `epiclang` and `banana` by default.
 >
 > It is **normal** if you get the `X seems to be installed by a package manager` warning.
 >
-> If you wish to get rid of this warning, you can uninstall the package that's causing this warning but it is not recommended.
-
-## Updating dependencies
-
-Update all of them:
-```sh
-cs2 update
-```
-
-Update only of of them with:
-```sh
-cs2 update --package banana
-```
-
-> You can install `banana` faster with `-j`, like `make -j`.
-
-Force rebuild/copy even with if there is not update:
-```sh
-cs2 update --package banana --force
-```
+> If you wish to get rid of this warning, you can uninstall the package that's causing this warning but it is **not recommended**.
