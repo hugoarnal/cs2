@@ -78,10 +78,7 @@ fn verify_clangpp_version() -> Result<(), Error> {
 }
 
 fn install_all(parallelism: bool) -> Result<(), Error> {
-    let all_packages = [
-        Packages::Epiclang,
-        Packages::Banana,
-    ];
+    let all_packages = [Packages::Epiclang, Packages::Banana];
 
     for package in all_packages {
         if let Err(e) = package.install(parallelism) {

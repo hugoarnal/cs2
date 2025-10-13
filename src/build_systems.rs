@@ -63,10 +63,7 @@ impl BuildSystems {
 }
 
 pub fn verify_packages() -> bool {
-    let packages = [
-        Packages::Epiclang,
-        Packages::Banana,
-    ];
+    let packages = [Packages::Epiclang, Packages::Banana];
 
     for package in packages {
         let mut found = false;
