@@ -9,6 +9,11 @@ use std::io::{BufRead, IsTerminal};
 // TODO: simplify arguments in install & update
 
 fn main() {
+    let jobs_amount = std::thread::available_parallelism()
+        .unwrap()
+        .get()
+        .to_string();
+
     let matches = command!()
         .subcommand(
             Command::new("install")
@@ -23,7 +28,9 @@ fn main() {
                     Arg::new("parallelism")
                         .short('j')
                         .help("For banana, install with parallelism")
-                        .num_args(0),
+                        .default_value("1")
+                        .default_missing_value(&jobs_amount)
+                        .num_args(0..=1),
                 ),
         )
         .subcommand(
@@ -39,7 +46,9 @@ fn main() {
                     Arg::new("parallelism")
                         .short('j')
                         .help("For banana, install with parallelism")
-                        .num_args(0),
+                        .default_value("1")
+                        .default_missing_value(&jobs_amount)
+                        .num_args(0..=1),
                 )
                 .arg(
                     Arg::new("force")

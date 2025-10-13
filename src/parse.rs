@@ -119,8 +119,8 @@ fn parse_line(line: String) -> Option<LineError> {
         };
         return Some(LineError {
             file: file.to_string(),
-            line_nb: line_nb,
-            col_nb: col_nb,
+            line_nb,
+            col_nb,
             level: ErrorLevel::from_str(level_text).unwrap(),
             rule: rule.to_string(),
             description: description.to_string(),

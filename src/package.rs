@@ -78,7 +78,7 @@ impl Packages {
         }
     }
 
-    pub fn build(&self, parallelism: bool) -> Result<(), Error> {
+    pub fn build(&self, parallelism: &String) -> Result<(), Error> {
         match *self {
             Self::Cs2 => {
                 let build_command = format!("cd {} && ./compile.sh", get_final_path(self.as_str()));
@@ -112,12 +112,7 @@ impl Packages {
                 let mut full_command = Command::new("sh");
                 full_command.args(["-c", build_command.as_str()]);
 
-                if parallelism {
-                    full_command.env(
-                        "CMAKE_BUILD_PARALLEL_LEVEL",
-                        std::thread::available_parallelism()?.get().to_string(),
-                    );
-                }
+                full_command.env("CMAKE_BUILD_PARALLEL_LEVEL", parallelism);
 
                 if !full_command.status()?.success() {
                     return Err(Error::other("Impossible to build banana"));
@@ -203,7 +198,7 @@ impl Packages {
         Ok(())
     }
 
-    pub fn install(&self, parallelism: bool) -> Result<(), Error> {
+    pub fn install(&self, parallelism: &String) -> Result<(), Error> {
         let package = self.as_str();
         let temp_path = get_temp_path(package);
         let final_path = get_final_path(package);
@@ -239,13 +234,13 @@ impl Packages {
             _ => {}
         }
 
-        self.build(parallelism)?;
+        self.build(&parallelism)?;
         warn_path_var("/usr/local/bin");
 
         return Ok(());
     }
 
-    pub fn update(&self, parallelism: bool, force: bool) -> Result<(), Error> {
+    pub fn update(&self, parallelism: &String, force: bool) -> Result<(), Error> {
         let package = self.as_str();
         let path = get_final_path(package);
 
@@ -261,7 +256,7 @@ impl Packages {
         println!("Updating {}", package);
 
         if pull_repo(&path, self.as_str())? || force {
-            self.build(parallelism)?;
+            self.build(&parallelism)?;
         } else {
             println!("Nothing to update");
         }

@@ -36,11 +36,11 @@ pub fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
     }
 }
 
-fn update_all(parallelism: bool, force: bool) -> Result<(), Error> {
+fn update_all(parallelism: &String, force: bool) -> Result<(), Error> {
     let packages = [Packages::Cs2, Packages::Epiclang, Packages::Banana];
 
     for package in packages {
-        if let Err(e) = package.update(parallelism, force) {
+        if let Err(e) = package.update(&parallelism, force) {
             println!("{}", e);
         };
     }
@@ -62,15 +62,15 @@ fn pre_update() -> Result<(), Error> {
 }
 
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
-    let parallelism = args.get_flag("parallelism");
+    let parallelism = args.get_one::<String>("parallelism").unwrap();
     let force = args.get_flag("force");
 
     let _ = pre_update()?;
 
     if let Some(package_str) = args.get_one::<String>("package") {
         let package = Packages::from_str(package_str)?;
-        return package.update(parallelism, force);
+        return package.update(&parallelism, force);
     }
 
-    return update_all(parallelism, force);
+    return update_all(&parallelism, force);
 }

@@ -8,6 +8,6 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
-clap = { version = "4.5.48", features = ["cargo", "derive"] }
+clap = { version = "4.5.48", features = ["cargo", "derive", "string"] }
 regex = "1.12.1"
 

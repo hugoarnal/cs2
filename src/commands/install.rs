@@ -77,11 +77,11 @@ fn verify_clangpp_version() -> Result<(), Error> {
     Ok(())
 }
 
-fn install_all(parallelism: bool) -> Result<(), Error> {
+fn install_all(parallelism: &String) -> Result<(), Error> {
     let all_packages = [Packages::Epiclang, Packages::Banana];
 
     for package in all_packages {
-        if let Err(e) = package.install(parallelism) {
+        if let Err(e) = package.install(&parallelism) {
             println!("{}", e);
         };
     }
@@ -89,7 +89,7 @@ fn install_all(parallelism: bool) -> Result<(), Error> {
 }
 
 pub fn handler(args: &ArgMatches) -> Result<(), Error> {
-    let parallelism = args.get_flag("parallelism");
+    let parallelism = args.get_one::<String>("parallelism").unwrap();
 
     create_directory(get_final_path("").as_str())?;
     verify_clang_version()?;
