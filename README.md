@@ -73,8 +73,8 @@ You can also clone the repo directly to `/usr/local/share/cs2` then run `compile
 ```sh
 git clone https://github.com/hugoarnal/cs2.git /tmp/cs2-cs2
 sudo mkdir -p /usr/local/share/cs2
+/tmp/cs2-cs2/compile.sh
 sudo mv /tmp/cs2-cs2 /usr/local/share/cs2/cs2
-/usr/local/share/cs2/cs2/compile.sh
 ```
 
 ### Installing dependencies
