@@ -81,13 +81,18 @@ impl PartialEq for LineError {
     }
 }
 
+fn skip_leading_dot(file: &str) -> &str {
+    let mut chars = file.chars();
+    // for some reason, chars.skip(2) did not work?
+    chars.next();
+    chars.next();
+    chars.as_str()
+}
+
 fn parse_line(line: String) -> Option<LineError> {
     if !line.contains(shared::BANANA_ERROR_PREFIX) {
         return None;
     }
-
-    // DONE: replace this line parsing with regex
-    // Behold, the BEST Regex I've ever written in my life.
 
     let re = Regex::new(
         r"(?m)^([^:]+):?([0-9]*):?([0-9]*):.*(Minor|Major|Info|Fatal)] (.*?) \(([A-Z]-[A-Z][0-9]).*$",
@@ -106,6 +111,11 @@ fn parse_line(line: String) -> Option<LineError> {
             u32::MIN
         } else {
             col_nb_s.to_string().parse().unwrap()
+        };
+        let file = if file.starts_with("./") {
+            skip_leading_dot(file)
+        } else {
+            file
         };
         return Some(LineError {
             file: file.to_string(),
