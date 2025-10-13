@@ -211,7 +211,7 @@ fn print_errors(errors: &Vec<LineError>) {
             error.rule,
             shared::Colors::RESET
         );
-        print!(" {}", error.description);
+        print!(" {} ", error.description);
         println!(
             "{}({}:{}:{}){}",
             shared::Colors::GRAY,
