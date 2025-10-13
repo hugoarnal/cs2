@@ -4,6 +4,7 @@ use std::process::Command;
 use std::str::FromStr;
 
 use crate::shared;
+use regex::Regex;
 
 #[derive(Clone, PartialEq)]
 enum ErrorLevel {
@@ -85,49 +86,24 @@ fn parse_line(line: String) -> Option<LineError> {
         return None;
     }
 
-    // TODO: replace this line parsing with regex
-    // Behold, the worst code I've ever writted in my life.
+    // DONE: replace this line parsing with regex
+    // Behold, the BEST Regex I've ever written in my life.
 
-    let mut split_semi = line.split(":");
-
-    let file = split_semi.next().unwrap().to_string();
-    let line_nb: u32 = split_semi.next().unwrap().to_string().parse().unwrap();
-    let col_nb: u32 = split_semi.next().unwrap().to_string().parse().unwrap();
-
-    let mut split_right_bracket = line.split("]");
-
-    // skull emoji
-    let first_split = split_right_bracket.nth(1).unwrap().to_string();
-    let level_text = first_split.split("[").nth(1).unwrap();
-    let level = ErrorLevel::from_str(level_text).unwrap();
-
-    let split_parenthesis = line.split("(");
-    let rule = split_parenthesis
-        .last()
-        .unwrap()
-        .split(")")
-        .next()
-        .unwrap()
-        .to_string();
-
-    let description = line
-        .split("] ")
-        .last()
-        .unwrap()
-        .split("(")
-        .next()
-        .unwrap()
-        .to_string();
-
-    Some(LineError {
-        file: file,
-        line_nb: line_nb,
-        col_nb: col_nb,
-        level: level,
-        rule: rule,
-        description: description,
-        ignore: false,
-    })
+    let re = Regex::new(r"(?m)^([^:]+):([0-9]+):([0-9]+):.*(Minor|Major)] (.*?) \(([A-Z]-[A-Z][0-9]).*$");
+    for (_, [file, line_nb_s, col_nb_s, level_text, description, rule]) in re.expect("REASON").captures_iter(&line).map(|c| c.extract()) {
+        let line_nb: u32 = line_nb_s.to_string().parse().unwrap();
+        let col_nb: u32 = col_nb_s.to_string().parse().unwrap();
+        return Some(LineError{
+            file: file.to_string(),
+            line_nb: line_nb,
+            col_nb: col_nb,
+            level: ErrorLevel::from_str(level_text).unwrap(),
+            rule: rule.to_string(),
+            description: description.to_string(),
+            ignore: false
+        });
+    }
+    None
 }
 
 fn summary_errors(errors: &Vec<LineError>) {
