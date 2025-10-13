@@ -82,7 +82,6 @@ fn install_all(parallelism: bool) -> Result<(), Error> {
         Packages::Epiclang,
         Packages::Banana,
         Packages::BananaCheckRepo,
-        Packages::BananaCheckRepoCs2,
     ];
 
     for package in all_packages {

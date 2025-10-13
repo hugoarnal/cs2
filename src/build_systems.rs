@@ -29,8 +29,7 @@ impl BuildSystems {
 
                 let both_std_output = shared::merge_outputs(command.stdout, command.stderr);
 
-                // Run `banana-check-repo-cs2`
-                let command = Command::new("banana-check-repo-cs2").output()?;
+                let command = Command::new("banana-check-repo").output()?;
 
                 let all_output = if !command.status.success() {
                     shared::merge_outputs(both_std_output, command.stdout)
@@ -67,7 +66,6 @@ pub fn verify_packages() -> bool {
     let packages = [
         Packages::Epiclang,
         Packages::Banana,
-        Packages::BananaCheckRepoCs2,
     ];
 
     for package in packages {

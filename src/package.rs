@@ -17,30 +17,6 @@ pub enum Packages {
     Epiclang,
     Banana,
     BananaCheckRepo,
-    BananaCheckRepoCs2,
-}
-
-fn patch_file(patch_name: &str, file: &str) -> Result<(), Error> {
-    let patch_path = format!("{}/src/patches/{}", get_final_path("cs2"), patch_name);
-
-    if !Path::new(&patch_path).exists() {
-        return Err(Error::other(
-            "Impossible to find patch, try running cs2's installation script (install.sh) or compilation script (compile.sh)",
-        ));
-    }
-
-    let command = Command::new("patch")
-        .args(["-p0", "-s", "-f", file, &patch_path])
-        .status()?;
-
-    if !command.success() {
-        println!("{} already applied to {}", patch_name, file);
-        return Ok(());
-    }
-
-    println!("Applied {} to {}", patch_name, file);
-
-    Ok(())
 }
 
 fn clone_repo(link: &str, temp_path: &str) -> Result<(), Error> {
@@ -87,7 +63,6 @@ impl FromStr for Packages {
             "epiclang" => Ok(Self::Epiclang),
             "banana" => Ok(Self::Banana),
             "banana-check-repo" => Ok(Self::BananaCheckRepo),
-            "banana-check-repo-cs2" => Ok(Self::BananaCheckRepoCs2),
             _ => Err(Error::other("Couldn't find package")),
         }
     }
@@ -100,7 +75,6 @@ impl Packages {
             Self::Epiclang => "epiclang",
             Self::Banana => "banana",
             Self::BananaCheckRepo => "banana-check-repo",
-            Self::BananaCheckRepoCs2 => "banana-check-repo-cs2",
         }
     }
 
@@ -165,11 +139,9 @@ impl Packages {
                 }
 
                 // checks that banana-check-repo is installed or "builds" it if it isn't
-                // then builds banana-check-repo-cs2
                 if Packages::BananaCheckRepo.verify_install().is_ok() {
                     Packages::BananaCheckRepo.build(parallelism)?;
                 }
-                Packages::BananaCheckRepoCs2.build(parallelism)?;
             }
             Self::BananaCheckRepo => {
                 let final_path = get_final_path("banana");
@@ -194,42 +166,8 @@ impl Packages {
                     return Err(Error::other("Impossible to move banana-check-repo"));
                 }
             }
-            Self::BananaCheckRepoCs2 => {
-                let bcr_file_name = Packages::BananaCheckRepo
-                    .get_installed_package()
-                    .ok_or(Error::other("Impossible to find banana-check-repo"))?;
-                let tmp_file_name = "/tmp/banana-check-repo-cs2";
-                let file_name = "/usr/local/bin/banana-check-repo-cs2";
-
-                if !Command::new("cp")
-                    .args([bcr_file_name, tmp_file_name])
-                    .status()?
-                    .success()
-                {
-                    return Err(Error::other("Impossible to create banana-check-repo-cs2"));
-                }
-
-                patch_file("banana-check-repo-cs2.patch", tmp_file_name)?;
-
-                if !Command::new("sudo")
-                    .args(["install", "-Dm755", tmp_file_name, file_name])
-                    .status()?
-                    .success()
-                {
-                    return Err(Error::other("Impossible to install banana-check-repo-cs2"));
-                }
-            }
         }
         Ok(())
-    }
-
-    fn get_installed_package(&self) -> Option<&str> {
-        for package in self.get_packages() {
-            if Path::new(package).exists() {
-                return Some(package);
-            }
-        }
-        None
     }
 
     pub fn get_packages(&self) -> &[&str] {
@@ -244,7 +182,6 @@ impl Packages {
                 "/usr/bin/banana-check-repo",
                 "/usr/local/bin/banana-check-repo",
             ],
-            Self::BananaCheckRepoCs2 => &["/usr/local/bin/banana-check-repo-cs2"],
             _ => &[],
         }
     }
