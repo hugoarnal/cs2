@@ -89,18 +89,32 @@ fn parse_line(line: String) -> Option<LineError> {
     // DONE: replace this line parsing with regex
     // Behold, the BEST Regex I've ever written in my life.
 
-    let re = Regex::new(r"(?m)^([^:]+):([0-9]+):([0-9]+):.*(Minor|Major)] (.*?) \(([A-Z]-[A-Z][0-9]).*$");
-    for (_, [file, line_nb_s, col_nb_s, level_text, description, rule]) in re.expect("REASON").captures_iter(&line).map(|c| c.extract()) {
-        let line_nb: u32 = line_nb_s.to_string().parse().unwrap();
-        let col_nb: u32 = col_nb_s.to_string().parse().unwrap();
-        return Some(LineError{
+    let re = Regex::new(
+        r"(?m)^([^:]+):?([0-9]*):?([0-9]*):.*(Minor|Major|Info|Fatal)] (.*?) \(([A-Z]-[A-Z][0-9]).*$",
+    );
+    for (_, [file, line_nb_s, col_nb_s, level_text, description, rule]) in re
+        .expect("REASON")
+        .captures_iter(&line)
+        .map(|c| c.extract())
+    {
+        let line_nb: u32 = if line_nb_s.is_empty() {
+            u32::MIN
+        } else {
+            line_nb_s.to_string().parse().unwrap()
+        };
+        let col_nb: u32 = if col_nb_s.is_empty() {
+            u32::MIN
+        } else {
+            col_nb_s.to_string().parse().unwrap()
+        };
+        return Some(LineError {
             file: file.to_string(),
             line_nb: line_nb,
             col_nb: col_nb,
             level: ErrorLevel::from_str(level_text).unwrap(),
             rule: rule.to_string(),
             description: description.to_string(),
-            ignore: false
+            ignore: false,
         });
     }
     None
