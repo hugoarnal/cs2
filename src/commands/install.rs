@@ -81,7 +81,6 @@ fn install_all(parallelism: bool) -> Result<(), Error> {
     let all_packages = [
         Packages::Epiclang,
         Packages::Banana,
-        Packages::BananaCheckRepo,
     ];
 
     for package in all_packages {
