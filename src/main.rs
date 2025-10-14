@@ -1,10 +1,15 @@
 mod build_systems;
+mod ci;
 mod commands;
 mod package;
 mod parse;
 mod shared;
+use ci::Ci;
 use clap::{command, Arg, ArgAction, Command};
-use std::io::{BufRead, IsTerminal};
+use std::{
+    io::{BufRead, IsTerminal},
+    str::FromStr,
+};
 
 fn main() {
     let jobs_amount = std::thread::available_parallelism()
@@ -56,6 +61,14 @@ fn main() {
                 .help("Disable checking for files ignored by git")
                 .num_args(0),
         )
+        .arg(
+            Arg::new("ci")
+                .long("ci")
+                .default_value("none")
+                .default_missing_value("github")
+                .help("CI mode, enables exit code & prints it for the specified platform")
+                .num_args(0..=1),
+        )
         .arg(&parallelism_arg)
         .get_matches();
 
@@ -103,7 +116,20 @@ fn main() {
             };
         }
         _ => {
-            if !std::io::stdin().is_terminal() {
+            let ci_flag = matches.get_one::<String>("ci").unwrap();
+            let ci: Option<Ci> = if ci_flag == "none" {
+                None
+            } else {
+                Some(match Ci::from_str(&ci_flag) {
+                    Ok(ci) => ci,
+                    Err(e) => {
+                        println!("{}", e);
+                        std::process::exit(1);
+                    }
+                })
+            };
+
+            if !std::io::stdin().is_terminal() && ci.is_none() {
                 let mut full_input = Vec::new();
                 for line in std::io::stdin().lock().lines() {
                     match line {
@@ -112,7 +138,7 @@ fn main() {
                     }
                 }
 
-                let _ = parse::parse_output(full_input, true);
+                let _ = parse::parse_output(full_input, true, None);
             } else {
                 if !build_systems::verify_packages() {
                     println!(
@@ -134,7 +160,7 @@ fn main() {
                     }
                 };
 
-                match parse::parse_output(lines, matches.get_flag("no-ignore")) {
+                match parse::parse_output(lines, matches.get_flag("no-ignore"), ci) {
                     Ok(_) => {}
                     Err(e) => {
                         println!("{}", e);

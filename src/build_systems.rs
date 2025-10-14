@@ -99,6 +99,8 @@ pub fn find(parallelism: String) -> Result<Vec<String>, Error> {
 
     match build_system {
         Some(b) => b.build(parallelism),
-        None => Err(Error::other("Couldn't find build system, use \"cs2 run <command>\" instead"))
+        None => Err(Error::other(
+            "Couldn't find build system, use \"cs2 run <command>\" instead",
+        )),
     }
 }

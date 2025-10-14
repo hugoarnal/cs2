@@ -3,11 +3,12 @@ use std::io::Error;
 use std::process::Command;
 use std::str::FromStr;
 
+use crate::ci::Ci;
 use crate::shared;
 use regex::Regex;
 
 #[derive(Clone, PartialEq)]
-enum ErrorLevel {
+pub enum ErrorLevel {
     FATAL,
     MAJOR,
     MINOR,
@@ -60,12 +61,12 @@ impl ErrorLevel {
 
 #[derive(Clone)]
 pub struct LineError {
-    file: String,
-    line_nb: Option<u32>,
-    col_nb: Option<u32>,
-    level: ErrorLevel,
-    rule: String,
-    description: String,
+    pub(crate) file: String,
+    pub(crate) line_nb: Option<u32>,
+    pub(crate) col_nb: Option<u32>,
+    pub(crate) level: ErrorLevel,
+    pub(crate) rule: String,
+    pub(crate) description: String,
     ignore: bool,
     occurrences: u32,
 }
@@ -296,7 +297,8 @@ fn clean_errors_vector(errors: &mut Vec<LineError>) {
     my_dedup(errors);
 }
 
-pub fn parse_output(lines: Vec<String>, dont_ignore: bool) -> Result<(), Error> {
+/// Returns true if needs to be exited, returns false if it doesn't
+pub fn parse_output(lines: Vec<String>, dont_ignore: bool, ci: Option<Ci>) -> Result<bool, Error> {
     let mut errors: Vec<LineError> = Vec::new();
 
     for line in lines {
@@ -314,5 +316,9 @@ pub fn parse_output(lines: Vec<String>, dont_ignore: bool) -> Result<(), Error> 
     clean_errors_vector(&mut errors);
     print_errors(&errors);
 
-    Ok(())
+    if ci.is_some() {
+        ci.unwrap().print_errors(&errors);
+    }
+
+    Ok(false)
 }
