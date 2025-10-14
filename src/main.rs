@@ -6,50 +6,37 @@ mod shared;
 use clap::{command, Arg, ArgAction, Command};
 use std::io::{BufRead, IsTerminal};
 
-// TODO: simplify arguments in install & update
-
 fn main() {
     let jobs_amount = std::thread::available_parallelism()
         .unwrap()
         .get()
         .to_string();
 
+    let package_arg = Arg::new("package")
+        .long("package")
+        .help("Only install a certain package")
+        .num_args(1);
+
+    let parallelism_arg = Arg::new("parallelism")
+        .short('j')
+        .long("jobs")
+        .help("Compile, if possible, with parallelism")
+        .default_value("1")
+        .default_missing_value(&jobs_amount)
+        .num_args(0..=1);
+
     let matches = command!()
         .subcommand(
             Command::new("install")
                 .about("Installs all the dependencies needed")
-                .arg(
-                    Arg::new("package")
-                        .long("package")
-                        .help("Only install a certain package")
-                        .num_args(1),
-                )
-                .arg(
-                    Arg::new("parallelism")
-                        .short('j')
-                        .help("For banana, install with parallelism")
-                        .default_value("1")
-                        .default_missing_value(&jobs_amount)
-                        .num_args(0..=1),
-                ),
+                .arg(&package_arg)
+                .arg(&parallelism_arg),
         )
         .subcommand(
             Command::new("update")
                 .about("Update cs2 and the dependencies")
-                .arg(
-                    Arg::new("package")
-                        .long("package")
-                        .help("Only install a certain package")
-                        .num_args(1),
-                )
-                .arg(
-                    Arg::new("parallelism")
-                        .short('j')
-                        .help("For banana, install with parallelism")
-                        .default_value("1")
-                        .default_missing_value(&jobs_amount)
-                        .num_args(0..=1),
-                )
+                .arg(&package_arg)
+                .arg(&parallelism_arg)
                 .arg(
                     Arg::new("force")
                         .short('f')
@@ -69,14 +56,7 @@ fn main() {
                 .help("Disable checking for files ignored by git")
                 .num_args(0),
         )
-        .arg(
-            Arg::new("parallelism")
-                .short('j')
-                .help("Compile project with, if possible, parallelism")
-                .default_value("1")
-                .default_missing_value(&jobs_amount)
-                .num_args(0..=1),
-        )
+        .arg(&parallelism_arg)
         .get_matches();
 
     match matches.subcommand() {
