@@ -315,5 +315,9 @@ pub fn parse_output(lines: Vec<String>, dont_ignore: bool, ci: Option<Ci>) -> Re
         ci.print_errors(&errors);
     }
 
-    Ok(false)
+    if errors.is_empty() {
+        Ok(false)
+    } else {
+        Ok(true)
+    }
 }

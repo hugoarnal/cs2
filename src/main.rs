@@ -161,7 +161,11 @@ fn main() {
                 };
 
                 match parse::parse_output(lines, matches.get_flag("no-ignore"), ci) {
-                    Ok(_) => {}
+                    Ok(exit) => {
+                        if exit {
+                            std::process::exit(1);
+                        }
+                    }
                     Err(e) => {
                         println!("{}", e);
                         std::process::exit(1);
