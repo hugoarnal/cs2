@@ -25,13 +25,11 @@ impl Ci {
                 for error in errors {
                     print!("::error file={},", error.file);
 
-                    match error.line_nb {
-                        Some(nb) => print!("line={},", nb),
-                        None => {}
+                    if let Some(nb) = error.line_nb {
+                        print!("line={},", nb)
                     }
-                    match error.col_nb {
-                        Some(nb) => print!("col={},", nb),
-                        None => {}
+                    if let Some(nb) = error.col_nb {
+                        print!("col={},", nb)
                     }
 
                     print!("title={} [{}]::", error.level, error.rule);

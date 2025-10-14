@@ -9,10 +9,10 @@ use regex::Regex;
 
 #[derive(Clone, PartialEq)]
 pub enum ErrorLevel {
-    FATAL,
-    MAJOR,
-    MINOR,
-    INFO,
+    Fatal,
+    Major,
+    Minor,
+    Info,
 }
 
 impl fmt::Display for ErrorLevel {
@@ -26,10 +26,10 @@ impl FromStr for ErrorLevel {
 
     fn from_str(input: &str) -> Result<Self, Error> {
         match input {
-            "Fatal" => Ok(Self::FATAL),
-            "Major" => Ok(Self::MAJOR),
-            "Minor" => Ok(Self::MINOR),
-            "Info" => Ok(Self::INFO),
+            "Fatal" => Ok(Self::Fatal),
+            "Major" => Ok(Self::Major),
+            "Minor" => Ok(Self::Minor),
+            "Info" => Ok(Self::Info),
             _ => Err(Error::other("Couldn't find error type")),
         }
     }
@@ -38,19 +38,19 @@ impl FromStr for ErrorLevel {
 impl ErrorLevel {
     fn as_str(&self) -> &'static str {
         match *self {
-            ErrorLevel::FATAL => "FATAL",
-            ErrorLevel::MAJOR => "MAJOR",
-            ErrorLevel::MINOR => "MINOR",
-            ErrorLevel::INFO => "INFO",
+            ErrorLevel::Fatal => "FATAL",
+            ErrorLevel::Major => "MAJOR",
+            ErrorLevel::Minor => "MINOR",
+            ErrorLevel::Info => "INFO",
         }
     }
 
     fn to_color(&self) -> shared::Colors {
         match *self {
-            Self::FATAL => shared::Colors::RED,
-            Self::MAJOR => shared::Colors::RED,
-            Self::MINOR => shared::Colors::ORANGE,
-            Self::INFO => shared::Colors::BLUE,
+            Self::Fatal => shared::Colors::RED,
+            Self::Major => shared::Colors::RED,
+            Self::Minor => shared::Colors::ORANGE,
+            Self::Info => shared::Colors::BLUE,
         }
     }
 
@@ -75,11 +75,11 @@ pub struct LineError {
 /// We don't check for the description as it might be different
 impl PartialEq for LineError {
     fn eq(&self, rhs: &LineError) -> bool {
-        return self.file == rhs.file
+        self.file == rhs.file
             && self.line_nb == rhs.line_nb
             && self.col_nb == rhs.col_nb
             && self.level == rhs.level
-            && self.rule == rhs.rule;
+            && self.rule == rhs.rule
     }
 }
 
@@ -99,10 +99,11 @@ fn parse_line(line: String) -> Option<LineError> {
     let re = Regex::new(
         r"(?m)^([^:]+):?([0-9]*):?([0-9]*):.*(Minor|Major|Info|Fatal)] (.*?) \(([A-Z]-[A-Z][0-9]).*$",
     );
-    for (_, [file, line_nb, col_nb, level_text, description, rule]) in re
+    if let Some((_, [file, line_nb, col_nb, level_text, description, rule])) = re
         .expect("REASON")
         .captures_iter(&line)
         .map(|c| c.extract())
+        .next()
     {
         let line_nb: Option<u32> = if line_nb.is_empty() {
             None
@@ -136,10 +137,10 @@ fn parse_line(line: String) -> Option<LineError> {
 fn summary_errors(errors: &Vec<LineError>) {
     let mut ignored_errors = 0;
     let mut errors_level = [
-        (ErrorLevel::FATAL, 0),
-        (ErrorLevel::MAJOR, 0),
-        (ErrorLevel::MINOR, 0),
-        (ErrorLevel::INFO, 0),
+        (ErrorLevel::Fatal, 0),
+        (ErrorLevel::Major, 0),
+        (ErrorLevel::Minor, 0),
+        (ErrorLevel::Info, 0),
     ];
 
     for error in errors {
@@ -148,10 +149,10 @@ fn summary_errors(errors: &Vec<LineError>) {
             continue;
         }
         match error.level {
-            ErrorLevel::FATAL => errors_level[0].1 += 1,
-            ErrorLevel::MAJOR => errors_level[1].1 += 1,
-            ErrorLevel::MINOR => errors_level[2].1 += 1,
-            ErrorLevel::INFO => errors_level[3].1 += 1,
+            ErrorLevel::Fatal => errors_level[0].1 += 1,
+            ErrorLevel::Major => errors_level[1].1 += 1,
+            ErrorLevel::Minor => errors_level[2].1 += 1,
+            ErrorLevel::Info => errors_level[3].1 += 1,
         };
     }
 
@@ -172,7 +173,7 @@ fn summary_errors(errors: &Vec<LineError>) {
     );
 
     for (i, (level, amount)) in errors_level.iter().enumerate() {
-        let bold = if *level == ErrorLevel::FATAL {
+        let bold = if *level == ErrorLevel::Fatal {
             shared::Colors::BOLD.as_str()
         } else {
             ""
@@ -192,14 +193,14 @@ fn summary_errors(errors: &Vec<LineError>) {
         );
     }
 
-    print!("\n");
+    println!();
 }
 
 fn print_errors(errors: &Vec<LineError>) {
     let mut prev_file_name = String::new();
 
     for error in errors {
-        if error.ignore == true {
+        if error.ignore {
             continue;
         }
 
@@ -217,17 +218,11 @@ fn print_errors(errors: &Vec<LineError>) {
         print!(" {} ", error.description);
         print!("{}", shared::Colors::GRAY);
         print!("({}", error.file);
-        match error.line_nb {
-            Some(line_nb) => {
-                print!(":{}", line_nb);
-            }
-            None => {}
+        if let Some(line_nb) = error.line_nb {
+            print!(":{}", line_nb);
         }
-        match error.col_nb {
-            Some(col_nb) => {
-                print!(":{}", col_nb);
-            }
-            None => {}
+        if let Some(col_nb) = error.col_nb {
+            print!(":{}", col_nb);
         }
         print!(")");
         if error.occurrences > 1 {
@@ -254,7 +249,7 @@ fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
 
     for ignored_file in ignored_files
         .split("\n")
-        .map(|f| String::from(f))
+        .map(String::from)
         .collect::<Vec<_>>()
     {
         for error in &mut *errors {
@@ -271,7 +266,7 @@ fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
 /// The function is kinda disgusting and probably not very optimized (.remove() is on O(N))
 fn my_dedup(errors: &mut Vec<LineError>) {
     let mut len: usize = errors.len();
-    if len <= 0 {
+    if len == 0 {
         return;
     }
     let mut temp: LineError = errors[0].clone();
@@ -316,8 +311,8 @@ pub fn parse_output(lines: Vec<String>, dont_ignore: bool, ci: Option<Ci>) -> Re
     clean_errors_vector(&mut errors);
     print_errors(&errors);
 
-    if ci.is_some() {
-        ci.unwrap().print_errors(&errors);
+    if let Some(ci) = ci {
+        ci.print_errors(&errors);
     }
 
     Ok(false)

@@ -74,7 +74,7 @@ fn main() {
 
     match matches.subcommand() {
         Some(("install", args)) => {
-            match commands::install::handler(&args) {
+            match commands::install::handler(args) {
                 Ok(_) => {}
                 Err(e) => {
                     println!("{}", e);
@@ -83,7 +83,7 @@ fn main() {
             };
         }
         Some(("update", args)) => {
-            match commands::update::handler(&args) {
+            match commands::update::handler(args) {
                 Ok(_) => {}
                 Err(e) => {
                     println!("{}", e);
@@ -102,7 +102,7 @@ fn main() {
                 .unwrap_or_default()
                 .collect::<Vec<_>>();
 
-            if command_args.len() <= 0 {
+            if command_args.is_empty() {
                 println!("No command provided");
                 std::process::exit(1);
             }
@@ -120,7 +120,7 @@ fn main() {
             let ci: Option<Ci> = if ci_flag == "none" {
                 None
             } else {
-                Some(match Ci::from_str(&ci_flag) {
+                Some(match Ci::from_str(ci_flag) {
                     Ok(ci) => ci,
                     Err(e) => {
                         println!("{}", e);

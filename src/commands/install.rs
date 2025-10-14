@@ -81,7 +81,7 @@ fn install_all(parallelism: &String) -> Result<(), Error> {
     let all_packages = [Packages::Epiclang, Packages::Banana];
 
     for package in all_packages {
-        if let Err(e) = package.install(&parallelism) {
+        if let Err(e) = package.install(parallelism) {
             println!("{}", e);
         };
     }
@@ -100,5 +100,5 @@ pub fn handler(args: &ArgMatches) -> Result<(), Error> {
         return package.install(parallelism);
     }
 
-    return install_all(parallelism);
+    install_all(parallelism)
 }

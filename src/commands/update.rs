@@ -40,7 +40,7 @@ fn update_all(parallelism: &String, force: bool) -> Result<(), Error> {
     let packages = [Packages::Cs2, Packages::Epiclang, Packages::Banana];
 
     for package in packages {
-        if let Err(e) = package.update(&parallelism, force) {
+        if let Err(e) = package.update(parallelism, force) {
             println!("{}", e);
         };
     }
@@ -65,12 +65,12 @@ pub fn handler(args: &ArgMatches) -> Result<(), Error> {
     let parallelism = args.get_one::<String>("parallelism").unwrap();
     let force = args.get_flag("force");
 
-    let _ = pre_update()?;
+    pre_update()?;
 
     if let Some(package_str) = args.get_one::<String>("package") {
         let package = Packages::from_str(package_str)?;
-        return package.update(&parallelism, force);
+        return package.update(parallelism, force);
     }
 
-    return update_all(&parallelism, force);
+    update_all(parallelism, force)
 }

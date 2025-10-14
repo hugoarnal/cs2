@@ -40,7 +40,7 @@ impl BuildSystems {
             build_system_output
         };
 
-        Ok(shared::split_output(all_output)?)
+        shared::split_output(all_output)
     }
 
     fn clean(&self) -> Result<(), Error> {

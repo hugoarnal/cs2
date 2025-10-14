@@ -6,6 +6,7 @@ use std::process::Command;
 pub const BANANA_ERROR_PREFIX: &str = "[Banana] ";
 pub const DEFAULT_RUN_ENV: [(&str, &str); 1] = [("CC", "epiclang")];
 
+#[allow(clippy::upper_case_acronyms)]
 pub enum Colors {
     GRAY,
     RED,
@@ -38,15 +39,11 @@ pub fn split_output(output: Vec<u8>) -> Result<Vec<String>, Error> {
     // TODO: replace unwrap if possible
     let output_str = String::from_utf8(output).unwrap();
 
-    Ok(output_str
-        .split("\n")
-        .map(|f| String::from(f))
-        .collect::<Vec<_>>())
+    Ok(output_str.split("\n").map(String::from).collect::<Vec<_>>())
 }
 
 pub fn merge_outputs(stdout: Vec<u8>, stderr: Vec<u8>) -> Vec<u8> {
-    let mut merged: Vec<u8> = Vec::new();
-    merged.reserve(stdout.len() + stderr.len());
+    let mut merged: Vec<u8> = Vec::with_capacity(stdout.len() + stderr.len());
 
     stdout.iter().for_each(|c| merged.push(*c));
     stderr.iter().for_each(|c| merged.push(*c));
@@ -60,10 +57,8 @@ pub fn create_directory(path: &str) -> Result<(), Error> {
         return Ok(());
     };
 
-    match Command::new("sudo").args(["mkdir", "-p", &path]).status() {
-        Ok(_) => {
-            return Ok(());
-        }
-        Err(e) => return Err(e),
-    };
+    match Command::new("sudo").args(["mkdir", "-p", path]).status() {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
 }
