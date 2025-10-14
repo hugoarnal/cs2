@@ -6,7 +6,7 @@ env:
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "dev"]
     paths:
       - "**.rs"
       - ".github/workflows/lint.yml"
