@@ -16,7 +16,7 @@ impl BuildSystems {
     fn build(&self, parallelism: String) -> Result<Vec<String>, Error> {
         self.clean()?;
 
-        match *self {
+        let build_system_output = match *self {
             Self::Makefile => {
                 // Running default `make`
                 let mut command = Command::new("make");
@@ -28,20 +28,20 @@ impl BuildSystems {
                     println!("Encountered an error while running make, continuing...");
                 }
 
-                let both_std_output = shared::merge_outputs(command.stdout, command.stderr);
-
-                let command = Command::new("banana-check-repo").output()?;
-
-                let all_output = if !command.status.success() {
-                    shared::merge_outputs(both_std_output, command.stdout)
-                } else {
-                    both_std_output
-                };
-
-                Ok(shared::split_output(all_output)?)
+                shared::merge_outputs(command.stdout, command.stderr)
             }
-            _ => Err(Error::other("Couldn't find build system")),
-        }
+            _ => return Err(Error::other("Couldn't find build system")),
+        };
+
+        let command = Command::new("banana-check-repo").output()?;
+
+        let all_output = if !command.status.success() {
+            shared::merge_outputs(build_system_output, command.stdout)
+        } else {
+            build_system_output
+        };
+
+        Ok(shared::split_output(all_output)?)
     }
 
     fn clean(&self) -> Result<(), Error> {
