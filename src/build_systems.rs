@@ -9,7 +9,6 @@ use crate::shared;
 enum BuildSystems {
     Makefile,
     Cmake,
-    None,
 }
 
 impl BuildSystems {
@@ -30,7 +29,7 @@ impl BuildSystems {
 
                 shared::merge_outputs(command.stdout, command.stderr)
             }
-            _ => return Err(Error::other("Couldn't find build system")),
+            _ => return Err(Error::other("Current build system is not supported")),
         };
 
         let command = Command::new("banana-check-repo").output()?;
@@ -86,17 +85,20 @@ pub fn verify_packages() -> bool {
 pub fn find(parallelism: String) -> Result<Vec<String>, Error> {
     let paths = fs::read_dir("./")?;
 
-    let mut build_system = BuildSystems::None;
+    let mut build_system: Option<BuildSystems> = None;
 
     for path in paths {
         let file_name = path?.file_name().to_ascii_lowercase();
         if file_name == "makefile" || file_name == "gnumakefile" {
-            build_system = BuildSystems::Makefile;
+            build_system = Some(BuildSystems::Makefile);
         }
         if file_name == "cmakelists.txt" {
-            build_system = BuildSystems::Cmake;
+            build_system = Some(BuildSystems::Cmake);
         }
     }
 
-    build_system.build(parallelism)
+    match build_system {
+        Some(b) => b.build(parallelism),
+        None => Err(Error::other("Couldn't find build system, use \"cs2 run <command>\" instead"))
+    }
 }
