@@ -43,6 +43,8 @@ cs2 -j
 cs2 -j2 # You can specify the amount of threads like that
 ```
 
+> If in your Makefile, you're compiling other Makefiles (typically `make -C lib/my`) that are needed for your final linkage, make sure that you use the `.NOTPARALLEL` rule to run them in order.
+
 Don't ignore `.gitignore` errors (`--no-ignore`)
 
 ```sh
