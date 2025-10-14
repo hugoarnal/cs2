@@ -67,7 +67,7 @@ pub struct LineError {
     rule: String,
     description: String,
     ignore: bool,
-    occurences: u32,
+    occurrences: u32,
 }
 
 /// Check for equality in file, line & col nb, level and rule
@@ -126,7 +126,7 @@ fn parse_line(line: String) -> Option<LineError> {
             rule: rule.to_string(),
             description: description.to_string(),
             ignore: false,
-            occurences: 1,
+            occurrences: 1,
         });
     }
     None
@@ -229,8 +229,8 @@ fn print_errors(errors: &Vec<LineError>) {
             None => {}
         }
         print!(")");
-        if error.occurences > 1 {
-            print!(" (x{})", error.occurences)
+        if error.occurrences > 1 {
+            print!(" (x{})", error.occurrences)
         }
         println!("{}", shared::Colors::RESET);
         prev_file_name = error.file.clone();
@@ -266,8 +266,8 @@ fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
     Ok(())
 }
 
-// Making alternative for Vec.dedup() in order to count the number of occurences
-// The function is kinda disgusting and probably not very optimized (.remove() is on O(N))
+/// Making alternative for Vec.dedup() in order to count the number of occurrences
+/// The function is kinda disgusting and probably not very optimized (.remove() is on O(N))
 fn my_dedup(errors: &mut Vec<LineError>) {
     let mut len: usize = errors.len();
     if len <= 0 {
@@ -277,7 +277,7 @@ fn my_dedup(errors: &mut Vec<LineError>) {
     let mut i: usize = 1;
     while i < len - 1 {
         if temp == errors[i] {
-            errors[i - 1].occurences += 1;
+            errors[i - 1].occurrences += 1;
             errors.remove(i);
             len -= 1;
         } else {
