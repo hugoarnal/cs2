@@ -276,7 +276,6 @@ fn my_dedup(errors: &mut Vec<LineError>) {
     let mut temp: LineError = errors[0].clone();
     let mut i: usize = 1;
     while i < len - 1 {
-        println!("i: {}, len: {}", i, len);
         if temp == errors[i] {
             errors[i - 1].occurences += 1;
             errors.remove(i);
