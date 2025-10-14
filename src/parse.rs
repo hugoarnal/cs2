@@ -67,7 +67,7 @@ pub struct LineError {
     pub(crate) level: ErrorLevel,
     pub(crate) rule: String,
     pub(crate) description: String,
-    ignore: bool,
+    pub(crate) ignore: bool,
     occurrences: u32,
 }
 

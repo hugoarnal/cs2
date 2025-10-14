@@ -23,6 +23,9 @@ impl Ci {
         match *self {
             Self::GitHub => {
                 for error in errors {
+                    if error.ignore {
+                        continue;
+                    }
                     print!("::error file={},", error.file);
 
                     if let Some(nb) = error.line_nb {
