@@ -168,7 +168,7 @@ fn summary_errors(errors: &Vec<LineError>) {
     // TODO: Add trollface when I get the approbation
     if nb_errors == 0 {
         println!(
-            "✅ {}There are no coding style errors!{}",
+            "{}There are no coding style errors!{}",
             shared::Colors::BOLD,
             shared::Colors::RESET
         );
