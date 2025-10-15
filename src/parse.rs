@@ -165,6 +165,16 @@ fn summary_errors(errors: &Vec<LineError>) {
         );
     }
 
+    // TODO: Add trollface when I get the approbation
+    if errors.len() - ignored_errors <= 0 {
+        println!(
+            "{}There are no coding style errors!{}",
+            shared::Colors::BOLD,
+            shared::Colors::RESET
+        );
+        return;
+    }
+
     print!(
         "{}{} error(s){}: ",
         shared::Colors::BOLD,
@@ -178,7 +188,6 @@ fn summary_errors(errors: &Vec<LineError>) {
         } else {
             ""
         };
-
         let comma = if i < errors_level.len() - 1 { ", " } else { "" };
 
         // TODO: perhaps don't show if amount < 0
@@ -205,7 +214,12 @@ fn print_errors(errors: &Vec<LineError>) {
         }
 
         if prev_file_name.is_empty() || prev_file_name != error.file {
-            println!("{}:", error.file);
+            println!(
+                "{}{}:{}",
+                shared::Colors::BOLD,
+                error.file,
+                shared::Colors::RESET
+            );
         }
 
         print!(
