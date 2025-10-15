@@ -329,7 +329,14 @@ pub fn parse_output(lines: Vec<String>, dont_ignore: bool, ci: Option<Ci>) -> Re
         ci.print_errors(&errors);
     }
 
-    if errors.is_empty() {
+    // TODO: make LineErrors to create the get_ignored_errors function & simplify code
+    let ignored_errors = errors
+        .iter()
+        .filter(|error| error.ignore)
+        .collect::<Vec<_>>()
+        .len();
+
+    if errors.len() - ignored_errors == 0 {
         Ok(false)
     } else {
         Ok(true)
