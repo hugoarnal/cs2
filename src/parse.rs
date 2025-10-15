@@ -140,14 +140,12 @@ fn summary_errors(errors: &Vec<LineError>) {
         (ErrorLevel::MINOR, 0),
         (ErrorLevel::INFO, 0),
     ];
-    let mut nb_errors: u32 = 0;
 
     for error in errors {
         if error.ignore {
             ignored_errors += 1;
             continue;
         }
-        nb_errors += 1;
         match error.level {
             ErrorLevel::FATAL => errors_level[0].1 += 1,
             ErrorLevel::MAJOR => errors_level[1].1 += 1,
@@ -166,7 +164,7 @@ fn summary_errors(errors: &Vec<LineError>) {
     }
 
     // TODO: Add trollface when I get the approbation
-    if nb_errors == 0 {
+    if errors.len() - ignored_errors <= 0 {
         println!(
             "{}There are no coding style errors!{}",
             shared::Colors::BOLD,
