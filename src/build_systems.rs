@@ -57,7 +57,11 @@ impl BuildSystems {
 
                 if !command.unwrap().status.success() {
                     println!("Error: Could not run rule 'fclean', trying 'clean'");
-                    let command_fallback = Command::new("make").arg("clean").envs(shared::DEFAULT_RUN_ENV).spawn()?.wait_with_output();
+                    let command_fallback = Command::new("make")
+                        .arg("clean")
+                        .envs(shared::DEFAULT_RUN_ENV)
+                        .spawn()?
+                        .wait_with_output();
                     if !command_fallback.unwrap().status.success() {
                         println!("Error: Could not run rule 'clean', continuing...");
                     }
