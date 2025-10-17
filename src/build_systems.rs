@@ -49,12 +49,19 @@ impl BuildSystems {
                 // TODO: add option to NOT clean
                 println!("Running make fclean");
 
-                let _ = Command::new("make")
+                let command = Command::new("make")
                     .arg("fclean")
                     .envs(shared::DEFAULT_RUN_ENV)
                     .spawn()?
-                    .wait();
+                    .wait_with_output();
 
+                if !command.unwrap().status.success() {
+                    println!("Error: Could not run rule 'fclean', trying 'clean'");
+                    let command_fallback = Command::new("make").arg("clean").envs(shared::DEFAULT_RUN_ENV).spawn()?.wait_with_output();
+                    if !command_fallback.unwrap().status.success() {
+                        println!("Error: Could not run rule 'clean', continuing...");
+                    }
+                }
                 Ok(())
             }
             _ => Ok(()),
