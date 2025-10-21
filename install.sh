@@ -24,8 +24,9 @@ else
     echo "$TMP_DIR is already installed, continuing..."
 fi
 
-make -C $TMP_DIR release
-sudo make -C $TMP_DIR install
+$TMP_DIR/compile.sh
+
+## move cs2 installed repo to $BASE_DIR/cs2
 sudo mv $TMP_DIR $BASE_DIR/cs2
 sudo chown -R $USER $BASE_DIR/cs2
 
