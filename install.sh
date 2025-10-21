@@ -11,7 +11,8 @@ BASE_DIR=${BASE_DIR:-$DEFAULT_BASE_DIR}
 
 sudo mkdir -p $BASE_DIR
 git clone $REPO_LINK /tmp/cs2-cs2
-/tmp/cs2-cs2/compile.sh
+make -C /tmp/cs2-cs2 release
+sudo make -C /tmp/cs2-cs2 install
 sudo mv /tmp/cs2-cs2 $BASE_DIR/cs2
 sudo chown -R $USER $BASE_DIR/cs2
 
