@@ -31,7 +31,7 @@ fn clone_repo(link: &str, temp_path: &str) -> Result<(), Error> {
         )));
     };
 
-    return Ok(());
+    Ok(())
 }
 
 fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<(), Error> {
@@ -234,10 +234,10 @@ impl Packages {
             _ => {}
         }
 
-        self.build(&parallelism)?;
+        self.build(parallelism)?;
         warn_path_var("/usr/local/bin");
 
-        return Ok(());
+        Ok(())
     }
 
     pub fn update(&self, parallelism: &String, force: bool) -> Result<(), Error> {
@@ -256,7 +256,7 @@ impl Packages {
         println!("Updating {}", package);
 
         if pull_repo(&path, self.as_str())? || force {
-            self.build(&parallelism)?;
+            self.build(parallelism)?;
         } else {
             println!("Nothing to update");
         }

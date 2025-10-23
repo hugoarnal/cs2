@@ -9,14 +9,13 @@ use crate::shared;
 enum BuildSystems {
     Makefile,
     Cmake,
-    None,
 }
 
 impl BuildSystems {
     fn build(&self, parallelism: String) -> Result<Vec<String>, Error> {
         self.clean()?;
 
-        match *self {
+        let build_system_output = match *self {
             Self::Makefile => {
                 // Running default `make`
                 let mut command = Command::new("make");
@@ -28,20 +27,20 @@ impl BuildSystems {
                     println!("Encountered an error while running make, continuing...");
                 }
 
-                let both_std_output = shared::merge_outputs(command.stdout, command.stderr);
-
-                let command = Command::new("banana-check-repo").output()?;
-
-                let all_output = if !command.status.success() {
-                    shared::merge_outputs(both_std_output, command.stdout)
-                } else {
-                    both_std_output
-                };
-
-                Ok(shared::split_output(all_output)?)
+                shared::merge_outputs(command.stdout, command.stderr)
             }
-            _ => Err(Error::other("Couldn't find build system")),
-        }
+            _ => return Err(Error::other("Current build system is not supported")),
+        };
+
+        let command = Command::new("banana-check-repo").output()?;
+
+        let all_output = if !command.status.success() {
+            shared::merge_outputs(build_system_output, command.stdout)
+        } else {
+            build_system_output
+        };
+
+        shared::split_output(all_output)
     }
 
     fn clean(&self) -> Result<(), Error> {
@@ -50,12 +49,21 @@ impl BuildSystems {
                 // TODO: add option to NOT clean
                 println!("Running make fclean");
 
-                let _ = Command::new("make")
+                let command = Command::new("make")
                     .arg("fclean")
                     .envs(shared::DEFAULT_RUN_ENV)
-                    .spawn()?
-                    .wait();
+                    .status()?;
 
+                if !command.success() {
+                    println!("Error: Could not run rule 'fclean', trying 'clean'");
+                    let command = Command::new("make")
+                        .arg("clean")
+                        .envs(shared::DEFAULT_RUN_ENV)
+                        .status()?;
+                    if !command.success() {
+                        println!("Error: Could not run rule 'clean', continuing...");
+                    }
+                }
                 Ok(())
             }
             _ => Ok(()),
@@ -86,17 +94,22 @@ pub fn verify_packages() -> bool {
 pub fn find(parallelism: String) -> Result<Vec<String>, Error> {
     let paths = fs::read_dir("./")?;
 
-    let mut build_system = BuildSystems::None;
+    let mut build_system: Option<BuildSystems> = None;
 
     for path in paths {
         let file_name = path?.file_name().to_ascii_lowercase();
         if file_name == "makefile" || file_name == "gnumakefile" {
-            build_system = BuildSystems::Makefile;
+            build_system = Some(BuildSystems::Makefile);
         }
         if file_name == "cmakelists.txt" {
-            build_system = BuildSystems::Cmake;
+            build_system = Some(BuildSystems::Cmake);
         }
     }
 
-    build_system.build(parallelism)
+    match build_system {
+        Some(b) => b.build(parallelism),
+        None => Err(Error::other(
+            "Couldn't find build system, use \"cs2 run <command>\" instead",
+        )),
+    }
 }
