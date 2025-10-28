@@ -270,7 +270,7 @@ fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
             if ignored_file.is_empty() {
                 continue;
             } else if error.file == ignored_file
-                || ignored_file.chars().last().unwrap() == '/'
+                || ignored_file.ends_with('/')
                     && error.file.starts_with(&ignored_file)
             {
                 error.ignore = true;
