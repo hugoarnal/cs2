@@ -267,12 +267,16 @@ fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
         .collect::<Vec<_>>()
     {
         for error in &mut *errors {
-            if error.file == ignored_file {
+            if ignored_file.is_empty() {
+                continue;
+            } else if error.file == ignored_file
+                || ignored_file.chars().last().unwrap() == '/'
+                    && error.file.starts_with(&ignored_file)
+            {
                 error.ignore = true;
             }
         }
     }
-
     Ok(())
 }
 
