@@ -2,7 +2,7 @@ use std::{io::Error, process::Command};
 
 use crate::{parse, shared};
 
-pub fn run(command_args: Vec<&String>) -> Result<(), Error> {
+pub fn run(command_args: &[String]) -> Result<(), Error> {
     let mut i = command_args.iter();
 
     let program = i.next().unwrap();

@@ -2,8 +2,6 @@ use std::path::Path;
 use std::process::Command;
 use std::{io::Error, str::FromStr};
 
-use clap::ArgMatches;
-
 use crate::{
     commands::shared::{get_final_path, warn_path_var},
     package::Packages,
@@ -88,17 +86,15 @@ fn install_all(parallelism: &String) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn handler(args: &ArgMatches) -> Result<(), Error> {
-    let parallelism = args.get_one::<String>("parallelism").unwrap();
-
+pub fn handler(package: &Option<String>, jobs: &String) -> Result<(), Error> {
     create_directory(get_final_path("").as_str())?;
     verify_clang_version()?;
     verify_clangpp_version()?;
 
-    if let Some(package_str) = args.get_one::<String>("package") {
+    if let Some(package_str) = package {
         let package = Packages::from_str(package_str)?;
-        return package.install(parallelism);
+        return package.install(jobs);
     }
 
-    install_all(parallelism)
+    install_all(jobs)
 }

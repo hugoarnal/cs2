@@ -12,7 +12,7 @@ enum BuildSystems {
 }
 
 impl BuildSystems {
-    fn build(&self, parallelism: String) -> Result<Vec<String>, Error> {
+    fn build(&self, parallelism: &String) -> Result<Vec<String>, Error> {
         self.clean()?;
 
         let build_system_output = match *self {
@@ -91,7 +91,7 @@ pub fn verify_packages() -> bool {
     true
 }
 
-pub fn find(parallelism: String) -> Result<Vec<String>, Error> {
+pub fn find(parallelism: &String) -> Result<Vec<String>, Error> {
     let paths = fs::read_dir("./")?;
 
     let mut build_system: Option<BuildSystems> = None;

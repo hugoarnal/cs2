@@ -2,8 +2,6 @@ use std::{io::Error, path::Path, process::Command, str::FromStr};
 
 use crate::package::Packages;
 
-use clap::ArgMatches;
-
 /// Returns true if project needs to be rebuilt, false if it's already at the latest version
 pub fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
     let command = format!("cd {} && git pull origin main", path);
@@ -61,16 +59,13 @@ fn pre_update() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn handler(args: &ArgMatches) -> Result<(), Error> {
-    let parallelism = args.get_one::<String>("parallelism").unwrap();
-    let force = args.get_flag("force");
-
+pub fn handler(package: &Option<String>, jobs: &String, force: bool) -> Result<(), Error> {
     pre_update()?;
 
-    if let Some(package_str) = args.get_one::<String>("package") {
+    if let Some(package_str) = package {
         let package = Packages::from_str(package_str)?;
-        return package.update(parallelism, force);
+        return package.update(jobs, force);
     }
 
-    update_all(parallelism, force)
+    update_all(jobs, force)
 }
