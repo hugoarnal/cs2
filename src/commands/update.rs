@@ -19,14 +19,12 @@ pub fn pull_repo(path: &str, package: &str) -> Result<bool> {
             return Err(anyhow!(
                 "Had problems updating {}: {}",
                 package,
-                String::from_utf8(results.stderr).unwrap()
+                String::from_utf8(results.stderr)?
             ));
         }
     };
 
-    // absolute cinema
-    if String::from_utf8(results.stdout)
-        .unwrap()
+    if String::from_utf8(results.stdout)?
         .contains("Already up to date.")
     {
         Ok(false)

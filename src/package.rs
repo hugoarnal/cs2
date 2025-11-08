@@ -231,7 +231,7 @@ impl Packages {
         }
 
         self.build(parallelism)?;
-        warn_path_var("/usr/local/bin");
+        _ = warn_path_var("/usr/local/bin");
 
         Ok(())
     }

@@ -30,8 +30,7 @@ fn verify_clang_version() -> Result<()> {
         return Err(anyhow!("Impossible to get clang version"));
     }
 
-    let version_string = match String::from_utf8(version_output.stdout)
-        .unwrap()
+    let version_string = match String::from_utf8(version_output.stdout)?
         .split("version ")
         .nth(1)
     {
@@ -40,7 +39,7 @@ fn verify_clang_version() -> Result<()> {
     };
 
     let major: i32 = match version_string.split(".").next() {
-        Some(s) => s.parse().unwrap(),
+        Some(s) => s.parse()?,
         None => return Err(anyhow!("Impossible to get the clang major version")),
     };
 
@@ -50,7 +49,7 @@ fn verify_clang_version() -> Result<()> {
             .spawn()?
             .wait();
 
-        warn_path_var("/usr/local/bin");
+        _ = warn_path_var("/usr/local/bin");
 
         return Ok(());
     }
