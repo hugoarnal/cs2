@@ -1,5 +1,5 @@
+use anyhow::{anyhow, Result};
 use std::fmt;
-use std::io::Error;
 use std::process::Command;
 use std::str::FromStr;
 
@@ -22,15 +22,15 @@ impl fmt::Display for ErrorLevel {
 }
 
 impl FromStr for ErrorLevel {
-    type Err = Error;
+    type Err = anyhow::Error;
 
-    fn from_str(input: &str) -> Result<Self, Error> {
+    fn from_str(input: &str) -> Result<Self> {
         match input {
             "Fatal" => Ok(Self::Fatal),
             "Major" => Ok(Self::Major),
             "Minor" => Ok(Self::Minor),
             "Info" => Ok(Self::Info),
-            _ => Err(Error::other("Couldn't find error type")),
+            _ => Err(anyhow!("Couldn't find error type")),
         }
     }
 }
@@ -249,7 +249,7 @@ fn print_errors(errors: &Vec<LineError>) {
     summary_errors(errors);
 }
 
-fn verify_ignore(errors: &mut Vec<LineError>) -> Result<(), Error> {
+fn verify_ignore(errors: &mut Vec<LineError>) -> Result<()> {
     let command = Command::new("git").args(["clean", "-ndX"]).output()?;
 
     if !command.status.success() {
@@ -310,7 +310,7 @@ fn clean_errors_vector(errors: &mut Vec<LineError>) {
 }
 
 /// Returns true if needs to be exited, returns false if it doesn't
-pub fn parse_output(lines: Vec<String>, dont_ignore: bool, ci: Option<Ci>) -> Result<bool, Error> {
+pub fn parse_output(lines: Vec<String>, dont_ignore: bool, ci: Option<Ci>) -> Result<bool> {
     let mut errors: Vec<LineError> = Vec::new();
 
     for line in lines {

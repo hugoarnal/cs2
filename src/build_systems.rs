@@ -1,7 +1,8 @@
 use std::fs;
-use std::io::Error;
 use std::path::Path;
 use std::process::Command;
+
+use anyhow::{anyhow, Result};
 
 use crate::package::Packages;
 use crate::shared;
@@ -12,7 +13,7 @@ enum BuildSystems {
 }
 
 impl BuildSystems {
-    fn build(&self, parallelism: &String) -> Result<Vec<String>, Error> {
+    fn build(&self, parallelism: &String) -> Result<Vec<String>> {
         self.clean()?;
 
         let build_system_output = match *self {
@@ -29,7 +30,7 @@ impl BuildSystems {
 
                 shared::merge_outputs(command.stdout, command.stderr)
             }
-            _ => return Err(Error::other("Current build system is not supported")),
+            _ => return Err(anyhow!("Current build system is not supported")),
         };
 
         let command = Command::new("banana-check-repo").output()?;
@@ -43,7 +44,7 @@ impl BuildSystems {
         shared::split_output(all_output)
     }
 
-    fn clean(&self) -> Result<(), Error> {
+    fn clean(&self) -> Result<()> {
         match *self {
             Self::Makefile => {
                 // TODO: add option to NOT clean
@@ -91,7 +92,7 @@ pub fn verify_packages() -> bool {
     true
 }
 
-pub fn find(parallelism: &String) -> Result<Vec<String>, Error> {
+pub fn find(parallelism: &String) -> Result<Vec<String>> {
     let paths = fs::read_dir("./")?;
 
     let mut build_system: Option<BuildSystems> = None;
@@ -108,7 +109,7 @@ pub fn find(parallelism: &String) -> Result<Vec<String>, Error> {
 
     match build_system {
         Some(b) => b.build(parallelism),
-        None => Err(Error::other(
+        None => Err(anyhow!(
             "Couldn't find build system, use \"cs2 run <command>\" instead",
         )),
     }
