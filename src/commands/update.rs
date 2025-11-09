@@ -36,7 +36,11 @@ fn update_all(parallelism: &String, force: bool) -> Result<()> {
 
     for package in packages {
         if let Err(e) = package.update(parallelism, force) {
-            println!("{}", e);
+            if package == Packages::Cs2 {
+                println!("{}", e);
+            } else {
+                return Err(e);
+            }
         };
     }
     Ok(())
