@@ -2,13 +2,29 @@ use std::path::Path;
 use std::process::Command;
 use std::str::FromStr;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
+use thiserror::Error;
 
 use crate::{
     commands::shared::{get_final_path, warn_path_var},
     package::Packages,
     shared::create_directory,
 };
+
+#[derive(Error, Debug)]
+enum InstallError {
+    #[error("Impossible to find clang, are you sure it's installed?")]
+    CantFindClang,
+
+    #[error("Impossible to find clang++")]
+    CantFindClangPP,
+
+    #[error("Impossible to get clang version")]
+    CantGetClangVersion,
+
+    #[error("Incorrect version (clang version is not >= 20)")]
+    IncorrectClangVersion,
+}
 
 /// if clang-20 doesn't exist, check that clang installed version is `> 20`
 /// if it is, create symlink for clang-20 in `/usr/local/bin`
@@ -22,12 +38,12 @@ fn verify_clang_version() -> Result<()> {
     }
 
     if !Path::new("/usr/bin/clang").exists() {
-        return Err(anyhow!("Impossible to find clang, is it installed?"));
+        return Err(InstallError::CantFindClang.into());
     };
 
     let version_output = Command::new("clang").args(["--version"]).output()?;
     if !version_output.status.success() {
-        return Err(anyhow!("Impossible to get clang version"));
+        return Err(InstallError::CantGetClangVersion.into());
     }
 
     let version_string = match String::from_utf8(version_output.stdout)?
@@ -35,12 +51,12 @@ fn verify_clang_version() -> Result<()> {
         .nth(1)
     {
         Some(v) => v.to_string(),
-        None => return Err(anyhow!("Impossible to get clang version")),
+        None => return Err(InstallError::CantGetClangVersion.into()),
     };
 
     let major: i32 = match version_string.split(".").next() {
         Some(s) => s.parse()?,
-        None => return Err(anyhow!("Impossible to get the clang major version")),
+        None => return Err(InstallError::CantGetClangVersion.into()),
     };
 
     if major >= 20 {
@@ -54,13 +70,13 @@ fn verify_clang_version() -> Result<()> {
         return Ok(());
     }
 
-    Err(anyhow!("clang version is not >= 20"))
+    Err(InstallError::IncorrectClangVersion.into())
 }
 
 fn verify_clangpp_version() -> Result<()> {
     if !Path::new("/usr/bin/clang++").exists() {
         println!("clang++ doesn't exist");
-        return Err(anyhow!("Impossible to find clang++"));
+        return Err(InstallError::CantFindClangPP.into());
     }
 
     if Path::new("/usr/local/bin/clang++-20").exists() {

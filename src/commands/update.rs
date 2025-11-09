@@ -24,9 +24,7 @@ pub fn pull_repo(path: &str, package: &str) -> Result<bool> {
         }
     };
 
-    if String::from_utf8(results.stdout)?
-        .contains("Already up to date.")
-    {
+    if String::from_utf8(results.stdout)?.contains("Already up to date.") {
         Ok(false)
     } else {
         Ok(true)
