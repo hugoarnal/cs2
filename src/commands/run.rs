@@ -1,8 +1,9 @@
-use std::{io::Error, process::Command};
+use anyhow::{anyhow, Result};
+use std::process::Command;
 
 use crate::{parse, shared};
 
-pub fn run(command_args: &[String]) -> Result<(), Error> {
+pub fn run(command_args: &[String]) -> Result<()> {
     let mut i = command_args.iter();
 
     let program = i.next().unwrap();
@@ -17,10 +18,10 @@ pub fn run(command_args: &[String]) -> Result<(), Error> {
     parse::parse_output(shared::split_output(all_output)?, true, None)?;
 
     if !outputs.status.success() {
-        return Err(Error::other(format!(
+        return Err(anyhow!(
             "Received error code: {}",
             outputs.status.code().unwrap()
-        )));
+        ));
     }
 
     Ok(())

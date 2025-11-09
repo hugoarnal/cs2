@@ -1,5 +1,6 @@
-use std::io::Error;
 use std::str::FromStr;
+
+use anyhow::{anyhow, Result};
 
 use crate::parse::LineError;
 
@@ -8,12 +9,12 @@ pub enum Ci {
 }
 
 impl FromStr for Ci {
-    type Err = Error;
+    type Err = anyhow::Error;
 
-    fn from_str(input: &str) -> Result<Self, Error> {
+    fn from_str(input: &str) -> Result<Self> {
         match input.to_ascii_lowercase().as_str() {
             "github" => Ok(Self::GitHub),
-            _ => Err(Error::other("Unknown CI platform")),
+            _ => Err(anyhow!("Unknown CI platform")),
         }
     }
 }

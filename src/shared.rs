@@ -1,7 +1,8 @@
 use std::fmt;
-use std::io::Error;
 use std::path::Path;
 use std::process::Command;
+
+use anyhow::{anyhow, Result};
 
 pub const BANANA_ERROR_PREFIX: &str = "[Banana] ";
 pub const DEFAULT_RUN_ENV: [(&str, &str); 1] = [("CC", "epiclang")];
@@ -35,9 +36,8 @@ impl fmt::Display for Colors {
     }
 }
 
-pub fn split_output(output: Vec<u8>) -> Result<Vec<String>, Error> {
-    // TODO: replace unwrap if possible
-    let output_str = String::from_utf8(output).unwrap();
+pub fn split_output(output: Vec<u8>) -> Result<Vec<String>> {
+    let output_str = String::from_utf8(output)?;
 
     Ok(output_str.split("\n").map(String::from).collect::<Vec<_>>())
 }
@@ -52,13 +52,13 @@ pub fn merge_outputs(stdout: Vec<u8>, stderr: Vec<u8>) -> Vec<u8> {
 }
 
 /// similar to fs::create_dir_all except with sudo privileges
-pub fn create_directory(path: &str) -> Result<(), Error> {
+pub fn create_directory(path: &str) -> Result<()> {
     if Path::new(&path).exists() {
         return Ok(());
     };
 
     match Command::new("sudo").args(["mkdir", "-p", path]).status() {
         Ok(_) => Ok(()),
-        Err(e) => Err(e),
+        Err(_) => Err(anyhow!("Couldn't create folder")),
     }
 }
