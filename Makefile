@@ -1,6 +1,4 @@
 CARGO	?=	$(shell which cargo)
-INSTALL	?=	$(shell which install)
-RM	?=	rm -f
 
 PREFIX	?=	/usr/local
 BINARY	:=	cs2
@@ -29,6 +27,6 @@ fclean:
 	$(RM) target/release/$(BINARY)
 
 .PHONY: install
-install:
+install:	release
 	install -Dm755 target/release/$(BINARY) $(PREFIX)/bin/$(BINARY)
 	@echo "Make sure that $(PREFIX)/bin is in your PATH"
