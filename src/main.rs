@@ -21,7 +21,7 @@ enum ArgSubcommand {
         package: Option<String>,
 
         /// Compile, if possible, with parallelism
-        #[arg(short, long)]
+        #[arg(short, long, default_missing_value = "", num_args = 0..=1)]
         jobs: Option<String>,
     },
     /// Update cs2 and the dependencies
@@ -31,7 +31,7 @@ enum ArgSubcommand {
         package: Option<String>,
 
         /// Compile, if possible, with parallelism
-        #[arg(short, long)]
+        #[arg(short, long, default_missing_value = "", num_args = 0..=1)]
         jobs: Option<String>,
 
         /// Force update even if there is nothing new when fetching
@@ -52,7 +52,7 @@ struct Args {
     command: Option<ArgSubcommand>,
 
     /// Compile, if possible, with parallelism
-    #[arg(short, long)]
+    #[arg(short, long, default_missing_value = "", num_args = 0..=1)]
     jobs: Option<String>,
 
     /// Prints the errors in a correct way for the specified platform
