@@ -1,6 +1,6 @@
 [package]
 name = "cs2"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 rust-version = "1.74"
 authors = ["Hugo ARNAL <hugo@hugoarnal.com>"]
@@ -12,4 +12,3 @@ anyhow = "1.0.100"
 clap = { version = "4.5.48", features = ["cargo", "derive", "string"] }
 regex = "1.12.1"
 thiserror = "2.0.17"
-
