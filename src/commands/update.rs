@@ -1,11 +1,10 @@
-use std::{io::Error, path::Path, process::Command, str::FromStr};
+use anyhow::{anyhow, Result};
+use std::{path::Path, process::Command, str::FromStr};
 
 use crate::package::Packages;
 
-use clap::ArgMatches;
-
 /// Returns true if project needs to be rebuilt, false if it's already at the latest version
-pub fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
+pub fn pull_repo(path: &str, package: &str) -> Result<bool> {
     let command = format!("cd {} && git pull origin main", path);
     let results = Command::new("sh").args(["-c", &command]).output()?;
 
@@ -17,31 +16,31 @@ pub fn pull_repo(path: &str, package: &str) -> Result<bool, Error> {
         let results = Command::new("sh").args(["-c", &command]).output()?;
 
         if !results.status.success() {
-            return Err(Error::other(format!(
+            return Err(anyhow!(
                 "Had problems updating {}: {}",
                 package,
-                String::from_utf8(results.stderr).unwrap()
-            )));
+                String::from_utf8(results.stderr)?
+            ));
         }
     };
 
-    // absolute cinema
-    if String::from_utf8(results.stdout)
-        .unwrap()
-        .contains("Already up to date.")
-    {
+    if String::from_utf8(results.stdout)?.contains("Already up to date.") {
         Ok(false)
     } else {
         Ok(true)
     }
 }
 
-fn update_all(parallelism: &String, force: bool) -> Result<(), Error> {
+fn update_all(parallelism: &String, force: bool) -> Result<()> {
     let packages = [Packages::Cs2, Packages::Epiclang, Packages::Banana];
 
     for package in packages {
         if let Err(e) = package.update(parallelism, force) {
-            println!("{}", e);
+            if package == Packages::Cs2 {
+                println!("{}", e);
+            } else {
+                return Err(e);
+            }
         };
     }
     Ok(())
@@ -52,7 +51,7 @@ fn update_all(parallelism: &String, force: bool) -> Result<(), Error> {
 /// Does cleanup work, checks if there are files that shouldn't be there,
 /// or should be moved and such.
 /// Doesn't actually remove them for you, but suggests that they can be removed.
-fn pre_update() -> Result<(), Error> {
+fn pre_update() -> Result<()> {
     if Path::new("/usr/local/bin/banana-check-repo-cs2").exists() {
         println!("cs2 no longer uses /usr/local/bin/banana-check-repo-cs2");
         println!("You can safely remove this file from your computer with:");
@@ -61,16 +60,13 @@ fn pre_update() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn handler(args: &ArgMatches) -> Result<(), Error> {
-    let parallelism = args.get_one::<String>("parallelism").unwrap();
-    let force = args.get_flag("force");
-
+pub fn handler(package: &Option<String>, jobs: &String, force: bool) -> Result<()> {
     pre_update()?;
 
-    if let Some(package_str) = args.get_one::<String>("package") {
+    if let Some(package_str) = package {
         let package = Packages::from_str(package_str)?;
-        return package.update(parallelism, force);
+        return package.update(jobs, force);
     }
 
-    update_all(parallelism, force)
+    update_all(jobs, force)
 }

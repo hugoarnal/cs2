@@ -1,8 +1,10 @@
 use std::fmt;
-use std::io::Error;
 use std::path::Path;
 use std::process::Command;
 use std::str::FromStr;
+
+use anyhow::{anyhow, Result};
+use thiserror::Error;
 
 use crate::commands::{
     shared::{get_final_path, get_temp_path, warn_path_var},
@@ -12,6 +14,7 @@ use crate::commands::{
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum Packages {
     Cs2,
     Epiclang,
@@ -19,22 +22,45 @@ pub enum Packages {
     BananaCheckRepo,
 }
 
-fn clone_repo(link: &str, temp_path: &str) -> Result<(), Error> {
+#[derive(Error, Debug)]
+enum PackagesError {
+    #[error("Impossible to build {0}")]
+    Build(Packages),
+
+    #[error("Impossible to install {0}")]
+    Install(Packages),
+
+    #[error("Impossible to move {0} to it's destination")]
+    Move(Packages),
+
+    #[error("Impossible to find {0}, are you sure it is installed?")]
+    NotFound(Packages),
+
+    #[error("Impossible to clone {0}, make sure you have the permissions to do so")]
+    RepoClone(String),
+
+    #[error("Already installed, use cs2 update instead")]
+    AlreadyInstalled,
+
+    #[error(
+        "{0} seems to be installed by a package manager, cs2 won't be able to install/update it"
+    )]
+    InstalledByPackageManager(String),
+}
+
+fn clone_repo(link: &str, temp_path: &str) -> Result<()> {
     if !Command::new("git")
         .args(["clone", link, temp_path])
         .status()?
         .success()
     {
-        return Err(Error::other(format!(
-            "Impossible to clone {}, make sure you have the permissions to do so",
-            link
-        )));
+        return Err(PackagesError::RepoClone(link.to_string()).into());
     };
 
     Ok(())
 }
 
-fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<(), Error> {
+fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<()> {
     let final_path_str = final_path.to_str().unwrap();
 
     if final_path.exists() {
@@ -46,24 +72,21 @@ fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<(), Error> {
         .status()?
         .success()
     {
-        return Err(Error::other(format!(
-            "Impossible to move to {}",
-            final_path_str
-        )));
+        return Err(anyhow!("Impossible to move to {}", final_path_str));
     };
     Ok(())
 }
 
 impl FromStr for Packages {
-    type Err = Error;
+    type Err = anyhow::Error;
 
-    fn from_str(input: &str) -> Result<Self, Error> {
+    fn from_str(input: &str) -> Result<Self> {
         match input.to_ascii_lowercase().as_str() {
             "cs2" => Ok(Self::Cs2),
             "epiclang" => Ok(Self::Epiclang),
             "banana" => Ok(Self::Banana),
             "banana-check-repo" => Ok(Self::BananaCheckRepo),
-            _ => Err(Error::other("Couldn't find package")),
+            _ => Err(anyhow!("Couldn't find package")),
         }
     }
 }
@@ -78,7 +101,7 @@ impl Packages {
         }
     }
 
-    pub fn build(&self, parallelism: &String) -> Result<(), Error> {
+    pub fn build(&self, parallelism: &String) -> Result<()> {
         match *self {
             Self::Cs2 => {
                 let build_command = format!("cd {} && ./compile.sh", get_final_path(self.as_str()));
@@ -88,7 +111,7 @@ impl Packages {
                     .status()?
                     .success()
                 {
-                    return Err(Error::other("Impossible to build cs2"));
+                    return Err(PackagesError::Build(Self::Cs2).into());
                 }
             }
             Self::Epiclang => {
@@ -102,7 +125,7 @@ impl Packages {
                     .status()?
                     .success()
                 {
-                    return Err(Error::other("Impossible to install epiclang"));
+                    return Err(PackagesError::Install(Self::Epiclang).into());
                 }
             }
             Self::Banana => {
@@ -115,7 +138,7 @@ impl Packages {
                 full_command.env("CMAKE_BUILD_PARALLEL_LEVEL", parallelism);
 
                 if !full_command.status()?.success() {
-                    return Err(Error::other("Impossible to build banana"));
+                    return Err(PackagesError::Build(Self::Banana).into());
                 }
 
                 if !Command::new("sudo")
@@ -128,9 +151,7 @@ impl Packages {
                     .status()?
                     .success()
                 {
-                    return Err(Error::other(
-                        "Impossible to move banana plugin to the plugin directory",
-                    ));
+                    return Err(PackagesError::Install(Self::Banana).into());
                 }
 
                 // checks that banana-check-repo is installed or "builds" it if it isn't
@@ -141,7 +162,7 @@ impl Packages {
             Self::BananaCheckRepo => {
                 let final_path = get_final_path("banana");
                 if !Path::new(&final_path).exists() {
-                    return Err(Error::other(
+                    return Err(anyhow!(
                         "Impossible to find banana repo, are you sure it is installed?",
                     ));
                 }
@@ -158,7 +179,7 @@ impl Packages {
                     .status()?
                     .success()
                 {
-                    return Err(Error::other("Impossible to move banana-check-repo"));
+                    return Err(PackagesError::Move(Self::BananaCheckRepo).into());
                 }
             }
         }
@@ -181,24 +202,19 @@ impl Packages {
         }
     }
 
-    pub fn verify_install(&self) -> Result<(), Error> {
+    pub fn verify_install(&self) -> Result<()> {
         let packages = self.get_packages();
         let final_path = get_final_path(self.as_str());
 
         for package in packages {
             if Path::new(package).exists() && !Path::new(&final_path).exists() {
-                return Err(Error::other(
-                    format!(
-                        "{} seems to be installed by a package manager, cs2 won't be able to install/update it",
-                        self.as_str()
-                    ).as_str()
-                ));
+                return Err(PackagesError::InstalledByPackageManager(package.to_string()).into());
             }
         }
         Ok(())
     }
 
-    pub fn install(&self, parallelism: &String) -> Result<(), Error> {
+    pub fn install(&self, parallelism: &String) -> Result<()> {
         let package = self.as_str();
         let temp_path = get_temp_path(package);
         let final_path = get_final_path(package);
@@ -206,9 +222,7 @@ impl Packages {
         self.verify_install()?;
 
         if Path::new(&final_path).exists() {
-            return Err(Error::other(
-                "Already cloned and installed, use cs2 update instead",
-            ));
+            return Err(PackagesError::AlreadyInstalled.into());
         }
 
         println!("Installing {}", package);
@@ -222,7 +236,7 @@ impl Packages {
                     .status()?
                     .success()
                 {
-                    return Err(Error::other("Couldn't chmod manual-install.sh"));
+                    return Err(anyhow!("Couldn't chmod manual-install.sh"));
                 }
 
                 move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
@@ -235,22 +249,19 @@ impl Packages {
         }
 
         self.build(parallelism)?;
-        warn_path_var("/usr/local/bin");
+        _ = warn_path_var("/usr/local/bin");
 
         Ok(())
     }
 
-    pub fn update(&self, parallelism: &String, force: bool) -> Result<(), Error> {
+    pub fn update(&self, parallelism: &String, force: bool) -> Result<()> {
         let package = self.as_str();
         let path = get_final_path(package);
 
         self.verify_install()?;
 
         if !Path::new(&path).exists() {
-            return Err(Error::other(format!(
-                "Impossible to find {}, have you installed it with cs2 install?",
-                package
-            )));
+            return Err(PackagesError::NotFound(self.clone()).into());
         }
 
         println!("Updating {}", package);

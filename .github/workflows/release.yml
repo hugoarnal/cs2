@@ -7,20 +7,55 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build_for_release:
+    name: Build for release
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+
       - name: Build release
         run: cargo build --release
+
       - name: Rename build
-        run: mv ./target/release/cs2 ./cs2-linux-x86_64 
+        id: build_name
+        run: |
+          KERNEL="unknown"
+          if [[ "${{ matrix.os }}" == "ubuntu-"* ]]; then
+            KERNEL="linux"
+          fi
+
+          ARCH=`uname -m`
+          mv ./target/release/cs2 ./cs2-$KERNEL-$ARCH
+
+          echo "binary_name=cs2-$KERNEL-$ARCH" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{steps.build_name.outputs.binary_name}}
+          path: ${{steps.build_name.outputs.binary_name}}
+          retention-days: 5
+
+  create_github_release:
+    needs: [build_for_release]
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v5
+        with:
+          pattern: cs2-*
+          path: ./
+          merge-multiple: true
+
       - name: Create release
         uses: softprops/action-gh-release@aec2ec56f94eb8180ceec724245f64ef008b89f5
         with:
           draft: false
           tag_name: ${{github.ref_name}}
           fail_on_unmatched_files: true
-          files: ./cs2-linux-x86_64
+          files: ./cs2-*
           name: ${{github.ref_name}}
-
