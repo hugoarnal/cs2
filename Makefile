@@ -5,17 +5,10 @@ BINARY	:=	cs2
 
 all:	target/debug/$(BINARY)
 
-.PHONY:	cargo
-cargo:
-ifeq (, $(CARGO))
-	@echo "Impossible to find cargo"
-	@exit 1
-endif
-
-target/debug/$(BINARY):	cargo
+target/debug/$(BINARY):
 	$(CARGO) build
 
-target/release/$(BINARY):	cargo
+target/release/$(BINARY):
 	$(CARGO) build --release
 
 .PHONY:	debug release
