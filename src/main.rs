@@ -124,7 +124,9 @@ fn main() {
                 match Ci::from_str(&ci) {
                     Ok(ci) => Some(ci),
                     Err(_) => {
-                        println!("Incorrect CI platform, continuing.");
+                        println!(
+                            "Incorrect CI platform, continuing with no CI platform specified."
+                        );
                         None
                     }
                 }
@@ -132,6 +134,13 @@ fn main() {
                 None
             };
 
+            // Piped input (<test command> | cs2)
+            //
+            // The reason for --ci cancelling any piped input
+            // is due to CI runners doing the following to run commands:
+            // `echo "cs2" | bash`
+            //
+            // This causes is_terminal to be false which triggers the "piped input mode"
             if !std::io::stdin().is_terminal() && ci.is_none() {
                 let mut full_input = Vec::new();
                 for line in std::io::stdin().lock().lines() {
@@ -142,6 +151,8 @@ fn main() {
                 }
 
                 let _ = parse::parse_output(full_input, true, None);
+
+            // Build system checking and running
             } else {
                 if !build_systems::verify_packages() {
                     println!(
