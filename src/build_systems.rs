@@ -4,6 +4,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Result};
 
+use crate::args::{get_jobs_number, Args};
 use crate::package::Packages;
 use crate::shared;
 
@@ -92,7 +93,7 @@ pub fn verify_packages() -> bool {
     true
 }
 
-pub fn find(parallelism: &String) -> Result<Vec<String>> {
+pub fn find(args: &Args) -> Result<Vec<String>> {
     let paths = fs::read_dir("./")?;
 
     let mut build_system: Option<BuildSystems> = None;
@@ -107,8 +108,9 @@ pub fn find(parallelism: &String) -> Result<Vec<String>> {
         }
     }
 
+    let jobs = get_jobs_number(&args.jobs);
     match build_system {
-        Some(b) => b.build(parallelism),
+        Some(b) => b.build(&jobs),
         None => Err(anyhow!(
             "Couldn't find build system, use \"cs2 run <command>\" instead",
         )),

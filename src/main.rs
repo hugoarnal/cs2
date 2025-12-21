@@ -1,3 +1,4 @@
+mod args;
 mod build_systems;
 mod ci;
 mod commands;
@@ -6,78 +7,13 @@ mod parse;
 mod shared;
 
 use ci::Ci;
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use std::{
     io::{BufRead, IsTerminal},
     str::FromStr,
 };
 
-#[derive(Subcommand)]
-enum ArgSubcommand {
-    /// Installs all the dependencies needed
-    Install {
-        /// Only install a certain package
-        #[arg(long)]
-        package: Option<String>,
-
-        /// Compile, if possible, with parallelism
-        #[arg(short, long, default_missing_value = "", num_args = 0..=1)]
-        jobs: Option<String>,
-    },
-    /// Update cs2 and the dependencies
-    Update {
-        /// Only update a certain package
-        #[arg(long)]
-        package: Option<String>,
-
-        /// Compile, if possible, with parallelism
-        #[arg(short, long, default_missing_value = "", num_args = 0..=1)]
-        jobs: Option<String>,
-
-        /// Force update even if there is nothing new when fetching
-        #[arg(short, long)]
-        force: bool,
-    },
-    /// Run your command through the cs2 helper
-    Run {
-        #[arg(action = clap::ArgAction::Append)]
-        command: Vec<String>,
-    },
-}
-
-#[derive(Parser)]
-#[command(version, about, long_about = None)]
-struct Args {
-    #[command(subcommand)]
-    command: Option<ArgSubcommand>,
-
-    /// Compile, if possible, with parallelism
-    #[arg(short, long, default_missing_value = "", num_args = 0..=1)]
-    jobs: Option<String>,
-
-    /// Prints the errors in a correct way for the specified platform
-    #[arg(long)]
-    ci: Option<String>,
-
-    /// Disable checking for files ignored by git
-    #[arg(long)]
-    no_ignore: bool,
-}
-
-fn get_jobs_number(jobs: &Option<String>) -> String {
-    if let Some(jobs) = jobs {
-        if jobs.is_empty() {
-            std::thread::available_parallelism()
-                .unwrap()
-                .get()
-                .to_string()
-        } else {
-            jobs.to_string()
-        }
-    } else {
-        "1".to_string()
-    }
-}
+use crate::args::{get_jobs_number, ArgSubcommand, Args};
 
 fn main() {
     let args = Args::parse();
@@ -120,8 +56,8 @@ fn main() {
             };
         }
         &None => {
-            let ci: Option<Ci> = if let Some(ci) = args.ci {
-                match Ci::from_str(&ci) {
+            let ci: Option<Ci> = if let Some(ref ci) = args.ci {
+                match Ci::from_str(ci) {
                     Ok(ci) => Some(ci),
                     Err(_) => {
                         println!(
@@ -161,7 +97,7 @@ fn main() {
                     std::process::exit(1);
                 }
 
-                let lines = match build_systems::find(&get_jobs_number(&args.jobs)) {
+                let lines = match build_systems::find(&args) {
                     Ok(lines) => lines,
                     Err(e) => {
                         println!("{}", e);
