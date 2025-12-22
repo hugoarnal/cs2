@@ -14,15 +14,17 @@ enum BuildSystems {
 }
 
 impl BuildSystems {
-    fn build(&self, parallelism: &String) -> Result<Vec<String>> {
+    fn build(&self, args: &Args) -> Result<Vec<String>> {
         self.clean()?;
+
+        let jobs = get_jobs_number(&args.jobs);
 
         let build_system_output = match *self {
             Self::Makefile => {
                 // Running default `make`
                 let mut command = Command::new("make");
-                command.envs(shared::DEFAULT_RUN_ENV);
-                command.envs([("MAKEFLAGS", format!("-j{} -Otarget", parallelism).as_str())]);
+                command.envs(shared::get_run_environment(args));
+                command.envs([("MAKEFLAGS", format!("-j{} -Otarget", jobs).as_str())]);
 
                 let command = command.output()?;
                 if !command.status.success() {
@@ -108,9 +110,8 @@ pub fn find(args: &Args) -> Result<Vec<String>> {
         }
     }
 
-    let jobs = get_jobs_number(&args.jobs);
     match build_system {
-        Some(b) => b.build(&jobs),
+        Some(b) => b.build(args),
         None => Err(anyhow!(
             "Couldn't find build system, use \"cs2 run <command>\" instead",
         )),

@@ -50,6 +50,16 @@ pub struct Args {
     /// Disable checking for files ignored by git
     #[arg(long)]
     pub(crate) no_ignore: bool,
+
+    /// Ignore rules, must be comma separated if there are multiple
+    /// Ignored rules won't show up in "ignored errors" as it's ignored directly by Banana and not cs2
+    #[arg(long)]
+    pub(crate) ignore_rules: Option<String>,
+
+    /// Ignore paths, must be comma separated if there are multiple
+    /// Ignored paths won't show up in "ignored errors" as it's ignored directly by Banana and not cs2
+    #[arg(long)]
+    pub(crate) ignore_paths: Option<String>,
 }
 
 pub fn get_jobs_number(jobs: &Option<String>) -> String {
