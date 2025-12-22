@@ -1,15 +1,13 @@
-CARGO	?=	$(shell which cargo)
-
 PREFIX	?=	/usr/local
 BINARY	:=	cs2
 
 all:	target/debug/$(BINARY)
 
 target/debug/$(BINARY):
-	$(CARGO) build
+	cargo build
 
 target/release/$(BINARY):	fclean
-	$(CARGO) build --release
+	cargo build --release
 
 .PHONY:	debug release
 debug:	target/debug/$(BINARY)
