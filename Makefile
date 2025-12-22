@@ -8,7 +8,7 @@ all:	target/debug/$(BINARY)
 target/debug/$(BINARY):
 	$(CARGO) build
 
-target/release/$(BINARY):
+target/release/$(BINARY):	fclean
 	$(CARGO) build --release
 
 .PHONY:	debug release
