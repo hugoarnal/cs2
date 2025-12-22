@@ -18,6 +18,6 @@ fclean:
 	$(RM) target/release/$(BINARY)
 
 .PHONY: install
-install:	release
+install:
 	install -Dm755 target/release/$(BINARY) $(PREFIX)/bin/$(BINARY)
 	@echo "Make sure that $(PREFIX)/bin is in your PATH"
