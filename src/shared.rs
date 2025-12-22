@@ -4,6 +4,8 @@ use std::process::Command;
 
 use anyhow::{anyhow, Result};
 
+use crate::args::Args;
+
 pub const BANANA_ERROR_PREFIX: &str = "[Banana] ";
 pub const DEFAULT_RUN_ENV: [(&str, &str); 1] = [("CC", "epiclang")];
 
@@ -61,4 +63,20 @@ pub fn create_directory(path: &str) -> Result<()> {
         Ok(_) => Ok(()),
         Err(_) => Err(anyhow!("Couldn't create folder")),
     }
+}
+
+pub fn get_run_environment(args: &Args) -> [(&str, String); 1] {
+    let mut epiclang_command = String::from("epiclang");
+
+    if let Some(rules) = &args.ignore_rules {
+        println!("Ignoring the following rules: {}", rules);
+        epiclang_command.push_str(format!(" -fplugin-arg-banana-ignore-rules={}", rules).as_str());
+    }
+
+    if let Some(paths) = &args.ignore_paths {
+        println!("Ignoring the following paths: {}", paths);
+        epiclang_command.push_str(format!(" -fplugin-arg-banana-ignore-paths={}", paths).as_str());
+    }
+
+    [("CC", epiclang_command)]
 }

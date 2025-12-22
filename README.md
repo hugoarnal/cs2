@@ -15,7 +15,8 @@ Epitech Banana (v4) Coding Style Helper
   - `cs2 run <command>`
 - Finds your build system[^2] and builds it automatically
 - Ignores all errors from files in your `.gitignore`
-- CI friendly ([GitHub Actions here](https://github.com/hugoschool/cs2-action))
+- Ignore some rules and some paths [(see Flags)](#flags)
+- CI friendly [(GitHub Actions here)](https://github.com/hugoschool/cs2-action)
 
 [^1]: It seems as if header files work differently when using banana. When they are included, if there's an error in them, it prints it every time the header is included.
 
@@ -60,6 +61,19 @@ CI mode with `--ci`
 cs2 --ci=github
 ```
 
+Ignore some rules with `--ignore-rules` (multiple rules must be comma separated)
+
+```sh
+cs2 --ignore-rules C-G1
+cs2 --ignore-rules C-G1,C-C3,C-V1
+```
+
+Ignore some paths with `--ignore-paths` (multiple paths must be comma separated)
+
+```sh
+cs2 --ignore-paths /
+cs2 --ignore-paths ignore-this-file.c,tests
+```
 
 #### Supported build systems:
 - GNU Makefile
