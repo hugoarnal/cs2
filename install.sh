@@ -25,7 +25,7 @@ else
 fi
 
 cd $TMP_DIR
-$TMP_DIR/compile.sh
+./compile.sh
 
 ## move cs2 installed repo to $BASE_DIR/cs2
 sudo mv $TMP_DIR $BASE_DIR/cs2
