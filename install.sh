@@ -24,6 +24,7 @@ else
     echo "$TMP_DIR is already installed, continuing..."
 fi
 
+cd $TMP_DIR
 $TMP_DIR/compile.sh
 
 ## move cs2 installed repo to $BASE_DIR/cs2
