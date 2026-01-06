@@ -107,7 +107,7 @@ Requirements:
 Use the `install.sh` script:
 
 ```sh
-curl -s https://raw.githubusercontent.com/hugoarnal/cs2/main/install.sh | sh
+curl -s https://raw.githubusercontent.com/hugoarnal/cs2/main/install.sh | bash
 ```
 
 You can also clone the repo directly to `/usr/local/share/cs2` then run `compile.sh`:
