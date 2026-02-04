@@ -80,3 +80,18 @@ pub fn get_run_environment(args: &Args) -> [(&str, String); 1] {
 
     [("CC", epiclang_command)]
 }
+
+pub fn envs_to_string(envs: &[(&str, String)]) -> String {
+    let mut str = String::new();
+
+    for (i, env) in envs.iter().enumerate() {
+        str += env.0;
+        str += "=";
+        str += &env.1;
+        if i < envs.len() - 1 {
+            str += " "
+        }
+    }
+
+    str
+}

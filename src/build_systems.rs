@@ -23,7 +23,10 @@ impl BuildSystems {
             Self::Makefile => {
                 // Running default `make`
                 let mut command = Command::new("make");
-                command.envs(shared::get_run_environment(args));
+                let env = shared::get_run_environment(args);
+
+                command.arg(shared::envs_to_string(&env));
+                command.envs(env);
                 command.envs([("MAKEFLAGS", format!("-j{} -Otarget", jobs).as_str())]);
 
                 let command = command.output()?;
