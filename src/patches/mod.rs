@@ -64,8 +64,7 @@ fn echo_patch(next_command: &mut Child, patch: &str) -> Result<Output> {
         .wait_with_output()?)
 }
 
-#[allow(dead_code)]
-pub fn apply_patch(file: &str, patch: &str) -> Result<bool> {
+pub fn is_patched(file: &str, patch: &str) -> Result<bool> {
     let mut dryrun_patch = Command::new("patch")
         .args(["-R", "-p0", "-s", "-f", "--dry-run", file])
         .stdin(Stdio::piped())
@@ -73,7 +72,12 @@ pub fn apply_patch(file: &str, patch: &str) -> Result<bool> {
         .spawn()?;
     let _ = echo_patch(&mut dryrun_patch, patch);
 
-    if !dryrun_patch.wait_with_output()?.status.success() {
+    Ok(!dryrun_patch.wait_with_output()?.status.success())
+}
+
+#[allow(dead_code)]
+pub fn apply_patch(file: &str, patch: &str) -> Result<bool> {
+    if is_patched(file, patch)? {
         let mut actual_patch = Command::new("sudo")
             .args(["patch", "-p0", "-s", "-f", file])
             .stdin(Stdio::piped())
