@@ -4,6 +4,7 @@ mod ci;
 mod commands;
 mod package;
 mod parse;
+mod patches;
 mod shared;
 
 use ci::Ci;
