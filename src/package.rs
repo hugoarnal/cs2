@@ -117,7 +117,7 @@ impl Packages {
             }
             Self::Epiclang => {
                 let build_command = format!(
-                    "cd {} && sudo ./manual-install.sh",
+                    "cd {} && sudo sh ./manual-install.sh",
                     get_final_path(self.as_str())
                 );
 
@@ -240,15 +240,6 @@ impl Packages {
         match *self {
             Self::Epiclang => {
                 clone_repo(EPICLANG_REPO, temp_path.as_str())?;
-
-                if !Command::new("chmod")
-                    .args(["+x", format!("{}/manual-install.sh", temp_path).as_str()])
-                    .status()?
-                    .success()
-                {
-                    return Err(anyhow!("Couldn't chmod manual-install.sh"));
-                }
-
                 move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
             }
             Self::Banana => {
