@@ -101,6 +101,7 @@ Requirements:
 - CMake
 - LLVM
 - llvm-libs
+- cURL (Required for Binary packages (ending in -bin))
 
 ### Installing cs2
 
@@ -126,12 +127,14 @@ After installing cs2, you can install `epiclang` package and `banana` plugin wit
 cs2 install
 ```
 
+> By default, cs2 will install and compile packages from source. See [List of packages](#packages) for more information.
+
 You can update the packages with:
 ```sh
 cs2 update
 ```
 
-Only need to update a single package? Use `cs2 install/update --package`:
+Only need to update a single package? Use `cs2 install/update --package` (see [List of packages](#packages)):
 ```sh
 cs2 install --package banana
 cs2 update --package banana
@@ -156,3 +159,17 @@ cs2 update --package banana --force
 > It is **normal** if you get the `X seems to be installed by a package manager` warning.
 >
 > If you wish to get rid of this warning, you can uninstall the package that's causing this warning but it is **not recommended**.
+
+#### Packages
+
+Using the `--package` option on `cs2 install` and `cs2 update` (see [Installing/Updating packages](#installingupdating-packages)), you can precise which package to update.
+
+Packages are a way to refer to parts of Banana v4. Here's a list of all available packages in cs2.
+
+Packages compiled from source:
+- epiclang: Installs epiclang from source
+- banana: Installs and compiles banana from source
+- banana-check-repo: Only works with banana compiled from source
+
+Binary packages:
+- banana-bin: Installs banana-check-repo and banana library using the latest Ubuntu PPA release
