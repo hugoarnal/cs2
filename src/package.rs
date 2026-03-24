@@ -1,10 +1,12 @@
 use std::fmt;
+use std::fs;
 use std::path::Path;
 use std::process::Command;
 use std::str::FromStr;
 
 use crate::patches;
 use anyhow::{anyhow, Result};
+use regex::Regex;
 use thiserror::Error;
 
 use crate::commands::{
@@ -15,11 +17,18 @@ use crate::commands::{
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
 
+// Keep the slash at the end or you get a 301 on curl
+const BANANA_PPA_LINK: &str =
+    "https://ppa.launchpadcontent.net/epitech/ppa/ubuntu/pool/main/b/banana-coding-style-checker/";
+const TAR_XZ_PPA_REGEX: &str = r"<a[^>]+>(.+?\.tar\.xz)</a>";
+const BANANA_FINAL_TAR_FILE: &str = "/tmp/banana.tar.xz";
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Packages {
     Cs2,
     Epiclang,
     Banana,
+    BananaBinary,
     BananaCheckRepo,
 }
 
@@ -86,6 +95,7 @@ impl FromStr for Packages {
             "cs2" => Ok(Self::Cs2),
             "epiclang" => Ok(Self::Epiclang),
             "banana" => Ok(Self::Banana),
+            "banana-bin" => Ok(Self::BananaBinary),
             "banana-check-repo" => Ok(Self::BananaCheckRepo),
             _ => Err(anyhow!("Couldn't find package")),
         }
@@ -98,6 +108,7 @@ impl Packages {
             Self::Cs2 => "cs2",
             Self::Epiclang => "epiclang",
             Self::Banana => "banana",
+            Self::BananaBinary => "banana-bin",
             Self::BananaCheckRepo => "banana-check-repo",
         }
     }
@@ -169,6 +180,63 @@ impl Packages {
                     Packages::BananaCheckRepo.build(parallelism)?;
                 }
             }
+            Self::BananaBinary => {
+                // Could be better but works for now
+                const TEMP_BANANA_DIR: &str = "/tmp/banana-binary";
+
+                if !Command::new("mkdir")
+                    .args(["-p", TEMP_BANANA_DIR])
+                    .status()?
+                    .success()
+                {
+                    return Err(anyhow!("Couldn't create dir {}", TEMP_BANANA_DIR));
+                }
+
+                if !Command::new("tar")
+                    .args([
+                        "xf",
+                        BANANA_FINAL_TAR_FILE,
+                        "--strip-components=1",
+                        "-C",
+                        TEMP_BANANA_DIR,
+                    ])
+                    .status()?
+                    .success()
+                {
+                    return Err(anyhow!("Couldn't untar {}", BANANA_FINAL_TAR_FILE));
+                }
+
+                // TODO: yeah... can do better...
+                let install_so_command = format!(
+                    "sudo install -Dm755 `find {} -name epiclang-plugin-banana.so.* -type f` /usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
+                    TEMP_BANANA_DIR
+                );
+
+                if !Command::new("bash")
+                    .args(["-c", install_so_command.as_str()])
+                    .status()?
+                    .success()
+                {
+                    return Err(anyhow!("Couldn't install library"));
+                }
+
+                // Overwriting the current banana-check-repo
+                let install_check_repo_command = format!(
+                    "sudo install -Dm755 {}/install/0/banana-check-repo /usr/local/bin/banana-check-repo",
+                    TEMP_BANANA_DIR
+                );
+
+                if !Command::new("bash")
+                    .args(["-c", install_check_repo_command.as_str()])
+                    .status()?
+                    .success()
+                {
+                    return Err(anyhow!(
+                        "Couldn't install banana-check-repo {}",
+                        BANANA_FINAL_TAR_FILE
+                    ));
+                }
+            }
             Self::BananaCheckRepo => {
                 let final_path = get_final_path("banana");
                 if !Path::new(&final_path).exists() {
@@ -199,7 +267,7 @@ impl Packages {
     pub fn get_packages(&self) -> &[&str] {
         match *self {
             Self::Epiclang => &["/usr/bin/epiclang", "/usr/local/bin/epiclang"],
-            Self::Banana => &[
+            Self::Banana | Self::BananaBinary => &[
                 "/usr/lib/epiclang/plugins/epitech-plugin-banana.so",
                 "/usr/lib/epiclang/plugins/epiclang-plugin-banana.so",
                 "/usr/local/lib/epiclang/plugins/epiclang-plugin-banana.so",
@@ -245,6 +313,55 @@ impl Packages {
             Self::Banana => {
                 clone_repo(BANANA_REPO, temp_path.as_str())?;
                 move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
+            }
+            Self::BananaBinary => {
+                const HTML_FILE: &str = "/tmp/banana-ppa-result.html";
+
+                if !Path::new("/usr/bin/curl").exists() {
+                    return Err(anyhow!("cURL not installed"));
+                };
+
+                if !Command::new("curl")
+                    .args([BANANA_PPA_LINK, "-o", HTML_FILE])
+                    .status()?
+                    .success()
+                {
+                    return Err(anyhow!("Impossible to get {}", BANANA_PPA_LINK));
+                }
+
+                let tar_xz_file: String;
+
+                match fs::read_to_string(HTML_FILE) {
+                    Ok(content) => {
+                        let re = Regex::new(TAR_XZ_PPA_REGEX);
+
+                        if let Some((_, [file])) = re
+                            .expect("REASON")
+                            .captures_iter(&content)
+                            .map(|c| c.extract())
+                            .next()
+                        {
+                            tar_xz_file = String::from(file);
+                        } else {
+                            return Err(anyhow!("Impossible to find tar"));
+                        }
+                    }
+                    Err(_) => {
+                        return Err(anyhow!("Couldn't get the result of {}", HTML_FILE));
+                    }
+                }
+
+                if !Command::new("curl")
+                    .args([
+                        format!("{}/{}", BANANA_PPA_LINK, tar_xz_file).as_str(),
+                        "-o",
+                        BANANA_FINAL_TAR_FILE,
+                    ])
+                    .status()?
+                    .success()
+                {
+                    return Err(anyhow!("Impossible to get {}", BANANA_PPA_LINK));
+                }
             }
             _ => {}
         }
