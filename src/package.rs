@@ -4,6 +4,7 @@ use std::path::Path;
 use std::process::Command;
 use std::str::FromStr;
 
+#[allow(unused_imports)]
 use crate::patches;
 use anyhow::{anyhow, Result};
 use regex::Regex;
@@ -138,15 +139,6 @@ impl Packages {
                     .success()
                 {
                     return Err(PackagesError::Install(Self::Epiclang).into());
-                }
-
-                if patches::apply_patch(
-                    "/usr/local/bin/epiclang",
-                    patches::EPICLANG_PYTHON_VERSION,
-                )? {
-                    println!("Successfully patched epiclang!");
-                } else {
-                    println!("Couldn't patch epiclang, continuing...")
                 }
             }
             Self::Banana => {
