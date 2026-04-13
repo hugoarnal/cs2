@@ -59,7 +59,7 @@ enum PackagesError {
     AlreadyInstalled,
 
     #[error(
-        "{0} seems to be installed by a package manager, cs2 won't be able to install/update it"
+        "{0} seems to be installed by a package manager. If you've installed using a binary version, try cs2 update --package=package-bin"
     )]
     InstalledByPackageManager(String),
 }
@@ -311,7 +311,9 @@ impl Packages {
 
     pub fn get_packages(&self) -> &[&str] {
         match *self {
-            Self::Epiclang => &["/usr/bin/epiclang", "/usr/local/bin/epiclang"],
+            Self::Epiclang | Self::EpiclangBinary => {
+                &["/usr/bin/epiclang", "/usr/local/bin/epiclang"]
+            }
             Self::Banana | Self::BananaBinary => &[
                 "/usr/lib/epiclang/plugins/epitech-plugin-banana.so",
                 "/usr/lib/epiclang/plugins/epiclang-plugin-banana.so",
@@ -323,6 +325,10 @@ impl Packages {
             ],
             _ => &[],
         }
+    }
+
+    fn is_binary(&self) -> bool {
+        matches!(*self, Self::BananaBinary | Self::EpiclangBinary)
     }
 
     pub fn verify_install(&self) -> Result<()> {
@@ -386,18 +392,22 @@ impl Packages {
         let package = self.as_str();
         let path = get_final_path(package);
 
-        self.verify_install()?;
+        if !self.is_binary() {
+            self.verify_install()?;
+            if !Path::new(&path).exists() {
+                return Err(PackagesError::NotFound(self.clone()).into());
+            }
 
-        if !Path::new(&path).exists() {
-            return Err(PackagesError::NotFound(self.clone()).into());
-        }
+            println!("Updating {}", package);
 
-        println!("Updating {}", package);
-
-        if pull_repo(&path, self.as_str())? || force {
-            self.build(parallelism)?;
+            if pull_repo(&path, self.as_str())? || force {
+                self.build(parallelism)?;
+            } else {
+                println!("Nothing to update");
+            }
         } else {
-            println!("Nothing to update");
+            println!("Updating {}", package);
+            self.build(parallelism)?;
         }
 
         Ok(())
