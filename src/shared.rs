@@ -1,6 +1,7 @@
-use std::fmt;
+use std::io::Cursor;
 use std::path::Path;
 use std::process::Command;
+use std::{fmt, fs::File};
 
 use anyhow::{anyhow, Result};
 
@@ -94,4 +95,12 @@ pub fn envs_to_string(envs: &[(&str, String)]) -> String {
     }
 
     str
+}
+
+pub fn download_file(link: &str, file: &str) -> Result<(), anyhow::Error> {
+    let resp = reqwest::blocking::get(link)?;
+    let mut body = Cursor::new(resp.bytes()?);
+    let mut out = File::create(file)?;
+    std::io::copy(&mut body, &mut out)?;
+    Ok(())
 }
