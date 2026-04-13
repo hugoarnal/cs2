@@ -22,13 +22,17 @@ const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.gi
 // Keep the slash at the end or you get a 301 on request
 const BANANA_PPA_LINK: &str =
     "https://ppa.launchpadcontent.net/epitech/ppa/ubuntu/pool/main/b/banana-coding-style-checker/";
+const EPICLANG_PPA_LINK: &str =
+    "https://ppa.launchpadcontent.net/epitech/ppa/ubuntu/pool/main/e/epiclang/";
 const TAR_XZ_PPA_REGEX: &str = r"<a[^>]+>(.+?\.tar\.xz)</a>";
 const BANANA_FINAL_TAR_FILE: &str = "/tmp/banana.tar.xz";
+const EPICLANG_FINAL_TAR_FILE: &str = "/tmp/epiclang.tar.xz";
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Packages {
     Cs2,
     Epiclang,
+    EpiclangBinary,
     Banana,
     BananaBinary,
     BananaCheckRepo,
@@ -89,6 +93,60 @@ fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<()> {
     Ok(())
 }
 
+fn download_html_ppa(link: &str, file: &str, final_file: &str) -> Result<(), anyhow::Error> {
+    download_file(link, file)?;
+
+    let tar_xz_file: String;
+
+    match fs::read_to_string(file) {
+        Ok(content) => {
+            let re = Regex::new(TAR_XZ_PPA_REGEX);
+
+            if let Some((_, [file])) = re
+                .expect("REASON")
+                .captures_iter(&content)
+                .map(|c| c.extract())
+                .next()
+            {
+                tar_xz_file = String::from(file);
+            } else {
+                return Err(anyhow!("Impossible to find tar"));
+            }
+        }
+        Err(_) => {
+            return Err(anyhow!("Couldn't get the result of {}", file));
+        }
+    }
+
+    download_file(format!("{}/{}", link, tar_xz_file).as_str(), final_file)?;
+    Ok(())
+}
+
+fn untar_ppa(temp_dir: &str, final_tar: &str) -> Result<(), anyhow::Error> {
+    if !Command::new("mkdir")
+        .args(["-p", temp_dir])
+        .status()?
+        .success()
+    {
+        return Err(anyhow!("Couldn't create dir {}", temp_dir));
+    }
+
+    if !Command::new("tar")
+        .args([
+            "xf",
+            final_tar,
+            "--strip-components=1",
+            "-C",
+            temp_dir,
+        ])
+        .status()?
+        .success()
+    {
+        return Err(anyhow!("Couldn't untar {}", final_tar));
+    }
+    Ok(())
+}
+
 impl FromStr for Packages {
     type Err = anyhow::Error;
 
@@ -96,6 +154,7 @@ impl FromStr for Packages {
         match input.to_ascii_lowercase().as_str() {
             "cs2" => Ok(Self::Cs2),
             "epiclang" => Ok(Self::Epiclang),
+            "epiclang-bin" => Ok(Self::EpiclangBinary),
             "banana" => Ok(Self::Banana),
             "banana-bin" => Ok(Self::BananaBinary),
             "banana-check-repo" => Ok(Self::BananaCheckRepo),
@@ -109,6 +168,7 @@ impl Packages {
         match *self {
             Self::Cs2 => "cs2",
             Self::Epiclang => "epiclang",
+            Self::EpiclangBinary => "epiclang-bin",
             Self::Banana => "banana",
             Self::BananaBinary => "banana-bin",
             Self::BananaCheckRepo => "banana-check-repo",
@@ -140,6 +200,26 @@ impl Packages {
                     .success()
                 {
                     return Err(PackagesError::Install(Self::Epiclang).into());
+                }
+            }
+            Self::EpiclangBinary => {
+                const TEMP_EPICLANG_DIR: &str = "/tmp/epiclang-binary";
+                untar_ppa(TEMP_EPICLANG_DIR, EPICLANG_FINAL_TAR_FILE)?;
+
+                let install_command = format!(
+                    "sudo install -Dm755 {}/install/0/epiclang.py /usr/local/bin/epiclang.py && sudo install -Dm755 {}/install/0/epiclang /usr/local/bin/epiclang",
+                    TEMP_EPICLANG_DIR, TEMP_EPICLANG_DIR
+                );
+
+                if !Command::new("bash")
+                    .args(["-c", install_command.as_str()])
+                    .status()?
+                    .success()
+                {
+                    return Err(anyhow!(
+                        "Couldn't install epiclang {}",
+                        EPICLANG_FINAL_TAR_FILE
+                    ));
                 }
             }
             Self::Banana => {
@@ -174,30 +254,8 @@ impl Packages {
                 }
             }
             Self::BananaBinary => {
-                // Could be better but works for now
                 const TEMP_BANANA_DIR: &str = "/tmp/banana-binary";
-
-                if !Command::new("mkdir")
-                    .args(["-p", TEMP_BANANA_DIR])
-                    .status()?
-                    .success()
-                {
-                    return Err(anyhow!("Couldn't create dir {}", TEMP_BANANA_DIR));
-                }
-
-                if !Command::new("tar")
-                    .args([
-                        "xf",
-                        BANANA_FINAL_TAR_FILE,
-                        "--strip-components=1",
-                        "-C",
-                        TEMP_BANANA_DIR,
-                    ])
-                    .status()?
-                    .success()
-                {
-                    return Err(anyhow!("Couldn't untar {}", BANANA_FINAL_TAR_FILE));
-                }
+                untar_ppa(TEMP_BANANA_DIR, BANANA_FINAL_TAR_FILE)?;
 
                 // TODO: yeah... can do better...
                 let install_so_command = format!(
@@ -308,33 +366,10 @@ impl Packages {
                 move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
             }
             Self::BananaBinary => {
-                const HTML_FILE: &str = "/tmp/banana-ppa-result.html";
-
-                download_file(BANANA_PPA_LINK, HTML_FILE)?;
-
-                let tar_xz_file: String;
-
-                match fs::read_to_string(HTML_FILE) {
-                    Ok(content) => {
-                        let re = Regex::new(TAR_XZ_PPA_REGEX);
-
-                        if let Some((_, [file])) = re
-                            .expect("REASON")
-                            .captures_iter(&content)
-                            .map(|c| c.extract())
-                            .next()
-                        {
-                            tar_xz_file = String::from(file);
-                        } else {
-                            return Err(anyhow!("Impossible to find tar"));
-                        }
-                    }
-                    Err(_) => {
-                        return Err(anyhow!("Couldn't get the result of {}", HTML_FILE));
-                    }
-                }
-
-                download_file(format!("{}/{}", BANANA_PPA_LINK, tar_xz_file).as_str(), BANANA_FINAL_TAR_FILE)?;
+                download_html_ppa(BANANA_PPA_LINK, "/tmp/banana-ppa-result.html", BANANA_FINAL_TAR_FILE)?;
+            }
+            Self::EpiclangBinary => {
+                download_html_ppa(EPICLANG_PPA_LINK, "/tmp/epiclang-ppa-result.html", EPICLANG_FINAL_TAR_FILE)?;
             }
             _ => {}
         }
