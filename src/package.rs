@@ -6,6 +6,7 @@ use std::str::FromStr;
 
 #[allow(unused_imports)]
 use crate::patches;
+use crate::shared::download_file;
 use anyhow::{anyhow, Result};
 use regex::Regex;
 use thiserror::Error;
@@ -18,7 +19,7 @@ use crate::commands::{
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
 
-// Keep the slash at the end or you get a 301 on curl
+// Keep the slash at the end or you get a 301 on request
 const BANANA_PPA_LINK: &str =
     "https://ppa.launchpadcontent.net/epitech/ppa/ubuntu/pool/main/b/banana-coding-style-checker/";
 const TAR_XZ_PPA_REGEX: &str = r"<a[^>]+>(.+?\.tar\.xz)</a>";
@@ -309,17 +310,7 @@ impl Packages {
             Self::BananaBinary => {
                 const HTML_FILE: &str = "/tmp/banana-ppa-result.html";
 
-                if !Path::new("/usr/bin/curl").exists() {
-                    return Err(anyhow!("cURL not installed"));
-                };
-
-                if !Command::new("curl")
-                    .args([BANANA_PPA_LINK, "-o", HTML_FILE])
-                    .status()?
-                    .success()
-                {
-                    return Err(anyhow!("Impossible to get {}", BANANA_PPA_LINK));
-                }
+                download_file(BANANA_PPA_LINK, HTML_FILE)?;
 
                 let tar_xz_file: String;
 
@@ -343,17 +334,7 @@ impl Packages {
                     }
                 }
 
-                if !Command::new("curl")
-                    .args([
-                        format!("{}/{}", BANANA_PPA_LINK, tar_xz_file).as_str(),
-                        "-o",
-                        BANANA_FINAL_TAR_FILE,
-                    ])
-                    .status()?
-                    .success()
-                {
-                    return Err(anyhow!("Impossible to get {}", BANANA_PPA_LINK));
-                }
+                download_file(format!("{}/{}", BANANA_PPA_LINK, tar_xz_file).as_str(), BANANA_FINAL_TAR_FILE)?;
             }
             _ => {}
         }

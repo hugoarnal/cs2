@@ -101,7 +101,6 @@ Requirements:
 - CMake
 - LLVM
 - llvm-libs
-- cURL (Required for Binary packages (ending in -bin))
 
 ### Installing cs2
 
