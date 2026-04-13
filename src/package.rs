@@ -132,13 +132,7 @@ fn untar_ppa(temp_dir: &str, final_tar: &str) -> Result<(), anyhow::Error> {
     }
 
     if !Command::new("tar")
-        .args([
-            "xf",
-            final_tar,
-            "--strip-components=1",
-            "-C",
-            temp_dir,
-        ])
+        .args(["xf", final_tar, "--strip-components=1", "-C", temp_dir])
         .status()?
         .success()
     {
@@ -366,10 +360,18 @@ impl Packages {
                 move_to_final_path(temp_path.as_str(), Path::new(&final_path))?;
             }
             Self::BananaBinary => {
-                download_html_ppa(BANANA_PPA_LINK, "/tmp/banana-ppa-result.html", BANANA_FINAL_TAR_FILE)?;
+                download_html_ppa(
+                    BANANA_PPA_LINK,
+                    "/tmp/banana-ppa-result.html",
+                    BANANA_FINAL_TAR_FILE,
+                )?;
             }
             Self::EpiclangBinary => {
-                download_html_ppa(EPICLANG_PPA_LINK, "/tmp/epiclang-ppa-result.html", EPICLANG_FINAL_TAR_FILE)?;
+                download_html_ppa(
+                    EPICLANG_PPA_LINK,
+                    "/tmp/epiclang-ppa-result.html",
+                    EPICLANG_FINAL_TAR_FILE,
+                )?;
             }
             _ => {}
         }

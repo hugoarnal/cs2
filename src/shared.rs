@@ -1,7 +1,7 @@
 use std::io::Cursor;
-use std::{fmt, fs::File};
 use std::path::Path;
 use std::process::Command;
+use std::{fmt, fs::File};
 
 use anyhow::{anyhow, Result};
 
