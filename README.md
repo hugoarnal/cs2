@@ -158,7 +158,13 @@ cs2 update --package banana --force
 
 Using the `--package` option on `cs2 install` and `cs2 update` (see [Installing/Updating packages](#installingupdating-packages)), you can precise which package to update.
 
-Packages are a way to refer to parts of Banana v4. Here's a list of all available packages in cs2.
+Packages are a way to refer to parts of Banana v4.
+
+Here's a list of all available packages in cs2:
+
+Binary packages (using the latest Ubuntu PPA release):
+- epiclang-bin: Installs epiclang
+- banana-bin: Installs banana-check-repo and banana library
 
 > If you wish to compile from source, you need to have access to `epiclang` and `banana-coding-style-checker` repos.
 
@@ -166,6 +172,3 @@ Packages compiled from source:
 - epiclang: Installs epiclang from source
 - banana: Installs and compiles banana from source
 - banana-check-repo: Only works with banana compiled from source
-
-Binary packages:
-- banana-bin: Installs banana-check-repo and banana library using the latest Ubuntu PPA release
