@@ -2,11 +2,6 @@
 
 Epitech Banana (v4) Coding Style Helper
 
-> [!WARNING]
-> This tool is unfortunately only usable by Epitech students.
->
-> You need to have access to `epiclang` and `banana-coding-style-checker` repos to be able to use `cs2`.
-
 ## Features
 
 - Easily install [epiclang](https://github.com/Epitech/epiclang) & [banana-coding-style-checker](https://github.com/Epitech/banana-coding-style-checker) [(see here)](#installingupdating-packages)
@@ -164,6 +159,8 @@ cs2 update --package banana --force
 Using the `--package` option on `cs2 install` and `cs2 update` (see [Installing/Updating packages](#installingupdating-packages)), you can precise which package to update.
 
 Packages are a way to refer to parts of Banana v4. Here's a list of all available packages in cs2.
+
+> If you wish to compile from source, you need to have access to `epiclang` and `banana-coding-style-checker` repos.
 
 Packages compiled from source:
 - epiclang: Installs epiclang from source
