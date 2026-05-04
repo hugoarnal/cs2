@@ -348,10 +348,12 @@ impl Packages {
         let temp_path = get_temp_path(package);
         let final_path = get_final_path(package);
 
-        self.verify_install()?;
+        if !self.is_binary() {
+            self.verify_install()?;
 
-        if Path::new(&final_path).exists() {
-            return Err(PackagesError::AlreadyInstalled.into());
+            if Path::new(&final_path).exists() {
+                return Err(PackagesError::AlreadyInstalled.into());
+            }
         }
 
         println!("Installing {}", package);
@@ -406,6 +408,7 @@ impl Packages {
                 println!("Nothing to update");
             }
         } else {
+            self.install(parallelism)?;
             println!("Updating {}", package);
             self.build(parallelism)?;
         }
