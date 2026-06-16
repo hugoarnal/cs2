@@ -2,6 +2,15 @@
 
 Epitech Banana (v4) Coding Style Helper
 
+> [!WARNING]
+> cs2 is now [casually maintained](https://casuallymaintained.tech/).
+>
+> I might update it if there are big updates to Banana or epiclang. No guarantees.
+>
+> If someone wants to become a maintainer of cs2, do not hesitate to email me!
+>
+> Also, don't hesitate to send PRs or fork it :)
+
 ## Features
 
 - Easily install [epiclang](https://github.com/Epitech/epiclang) & [banana-coding-style-checker](https://github.com/Epitech/banana-coding-style-checker) [(see here)](#installingupdating-packages)
