@@ -1,50 +1,10 @@
-use anyhow::{anyhow, Result};
-use std::{path::Path, process::Command, str::FromStr};
+use anyhow::Result;
+use std::path::Path;
 
-use crate::package::Packages;
-
-/// Returns true if project needs to be rebuilt, false if it's already at the latest version
-pub fn pull_repo(path: &str, package: &str) -> Result<bool> {
-    let command = format!("cd {} && git pull origin main", path);
-    let results = Command::new("sh").args(["-c", &command]).output()?;
-
-    if !results.status.success() {
-        let command = format!(
-            "cd {} && git reset --hard main && git pull origin main",
-            path
-        );
-        let results = Command::new("sh").args(["-c", &command]).output()?;
-
-        if !results.status.success() {
-            return Err(anyhow!(
-                "Had problems updating {}: {}",
-                package,
-                String::from_utf8(results.stderr)?
-            ));
-        }
-    };
-
-    if String::from_utf8(results.stdout)?.contains("Already up to date.") {
-        Ok(false)
-    } else {
-        Ok(true)
-    }
-}
-
-fn update_all(parallelism: &String, force: bool) -> Result<()> {
-    let packages = [Packages::Cs2, Packages::Epiclang, Packages::Banana];
-
-    for package in packages {
-        if let Err(e) = package.update(parallelism, force) {
-            if package == Packages::Cs2 {
-                println!("{}", e);
-            } else {
-                return Err(e);
-            }
-        };
-    }
-    Ok(())
-}
+use crate::{
+    commands::shared::get_final_path,
+    packages::{self, source::pull_repo, Package, PackageType},
+};
 
 /// It's there for future updates and especially the depreciation of
 /// `banana-check-repo-cs2`
@@ -60,13 +20,39 @@ fn pre_update() -> Result<()> {
     Ok(())
 }
 
-pub fn handler(package: &Option<String>, jobs: &String, force: bool) -> Result<()> {
+fn update_package(package: &mut Box<dyn Package>, jobs: &str, force: bool) -> Result<()> {
+    let package_name = package.as_str();
+    package.set_parallelism(jobs);
+
+    if package.get_type() == PackageType::Source {
+        let path = get_final_path(package_name);
+        println!("Updating {}", package_name);
+
+        if pull_repo(&path, package_name)? || force {
+            package.build()?;
+        } else {
+            println!("Nothing to update");
+            return Ok(());
+        }
+    } else {
+        println!("Updating {}", package_name);
+        package.download()?;
+        package.build()?;
+        package.install()?;
+    }
+
+    println!("Successfully updated {}", package_name);
+    Ok(())
+}
+
+pub fn handler(package: &Option<String>, jobs: &str, force: bool) -> Result<()> {
     pre_update()?;
 
     if let Some(package_str) = package {
-        let package = Packages::from_str(package_str)?;
-        return package.update(jobs, force);
+        let mut package = packages::from_str(package_str)?;
+        return update_package(&mut package, jobs, force);
     }
 
-    update_all(jobs, force)
+    // TODO: update all installed packages by default
+    Ok(())
 }

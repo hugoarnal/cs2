@@ -1,13 +1,12 @@
 use std::path::Path;
 use std::process::Command;
-use std::str::FromStr;
 
 use anyhow::Result;
 use thiserror::Error;
 
 use crate::{
     commands::shared::{get_final_path, warn_path_var},
-    package::Packages,
+    packages::{self, Package},
     shared::create_directory,
 };
 
@@ -92,24 +91,34 @@ fn verify_clangpp_version() -> Result<()> {
     Ok(())
 }
 
-fn install_all(parallelism: &String) -> Result<()> {
-    let all_packages = [Packages::Epiclang, Packages::Banana];
+pub fn install_package(package: &mut Box<dyn Package>, jobs: &str) -> Result<()> {
+    let package_name = package.as_str();
+    package.set_parallelism(jobs);
 
-    for package in all_packages {
-        package.install(parallelism)?;
-    }
+    println!("Processing {} package", package_name);
+    println!("Downloading {}", package_name);
+    package.download()?;
+    println!("Building {}", package_name);
+    package.build()?;
+    println!("Installing {}", package_name);
+    package.install()?;
+    println!("Successfully installed {}", package_name);
     Ok(())
 }
 
-pub fn handler(package: &Option<String>, jobs: &String) -> Result<()> {
+pub fn handler(package: &Option<String>, jobs: &str) -> Result<()> {
     create_directory(get_final_path("").as_str())?;
     verify_clang_version()?;
     verify_clangpp_version()?;
 
     if let Some(package_str) = package {
-        let package = Packages::from_str(package_str)?;
-        return package.install(jobs);
+        let mut package = packages::from_str(package_str)?;
+        install_package(&mut package, jobs)?;
+        return Ok(());
     }
 
-    install_all(jobs)
+    for mut package in packages::get_default_packages() {
+        install_package(&mut package, jobs)?;
+    }
+    Ok(())
 }

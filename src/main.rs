@@ -2,7 +2,7 @@ mod args;
 mod build_systems;
 mod ci;
 mod commands;
-mod package;
+mod packages;
 mod parse;
 mod patches;
 mod shared;
@@ -91,7 +91,7 @@ fn main() {
 
             // Build system checking and running
             } else {
-                if !build_systems::verify_packages() {
+                if !packages::verify_installation() {
                     println!(
                         "Some packages seem to not be installed, make sure you ran cs2 install before"
                     );

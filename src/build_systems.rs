@@ -1,11 +1,9 @@
 use std::fs;
-use std::path::Path;
 use std::process::Command;
 
 use anyhow::{anyhow, Result};
 
 use crate::args::{get_jobs_number, Args};
-use crate::package::Packages;
 use crate::shared;
 
 enum BuildSystems {
@@ -76,26 +74,6 @@ impl BuildSystems {
             _ => Ok(()),
         }
     }
-}
-
-pub fn verify_packages() -> bool {
-    let packages = [Packages::Epiclang, Packages::Banana];
-
-    for package in packages {
-        let mut found = false;
-
-        for path in package.get_packages() {
-            if Path::new(path).exists() {
-                found = true;
-            }
-        }
-
-        if !found {
-            println!("Couldn't find {}", package);
-            return false;
-        }
-    }
-    true
 }
 
 pub fn find(args: &Args) -> Result<Vec<String>> {

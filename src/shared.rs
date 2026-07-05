@@ -104,3 +104,20 @@ pub fn download_file(link: &str, file: &str) -> Result<(), anyhow::Error> {
     std::io::copy(&mut body, &mut out)?;
     Ok(())
 }
+
+pub fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<()> {
+    let final_path_str = final_path.to_str().unwrap();
+
+    if final_path.exists() {
+        return Ok(());
+    }
+
+    if !Command::new("sudo")
+        .args(["mv", temp_path, final_path_str])
+        .status()?
+        .success()
+    {
+        return Err(anyhow!("Impossible to move to {}", final_path_str));
+    };
+    Ok(())
+}
