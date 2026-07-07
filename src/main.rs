@@ -98,7 +98,15 @@ fn main() {
                     std::process::exit(1);
                 }
 
-                let lines = match build_systems::find(&args) {
+                let build_system = match build_systems::construct(&args) {
+                    Ok(build_system) => build_system,
+                    Err(e) => {
+                        println!("{}", e);
+                        std::process::exit(1);
+                    }
+                };
+
+                let lines = match build_systems::build(build_system.as_ref(), &args) {
                     Ok(lines) => lines,
                     Err(e) => {
                         println!("{}", e);
