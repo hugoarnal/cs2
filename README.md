@@ -101,7 +101,7 @@ Both of these commands will run `epiclang main.c` and format the error output wi
 Requirements:
 - Rust
 - Cargo
-- clang (>= 20)
+- clang (>= 21)
 - CMake
 - LLVM
 - llvm-libs

@@ -22,17 +22,17 @@ enum InstallError {
     #[error("Impossible to get clang version")]
     CantGetClangVersion,
 
-    #[error("Incorrect version (clang version is not >= 20)")]
+    #[error("Incorrect version (clang version is not >= 21)")]
     IncorrectClangVersion,
 }
 
-/// if clang-20 doesn't exist, check that clang installed version is `> 20`
-/// if it is, create symlink for clang-20 in `/usr/local/bin`
+/// if clang-21 doesn't exist, check that clang installed version is `> 21`
+/// if it is, create symlink for clang-21 in `/usr/local/bin`
 fn verify_clang_version() -> Result<()> {
     let possible_paths = ["/usr/bin", "/usr/local/bin"];
 
     for path in possible_paths {
-        if Path::new(&format!("{}/clang-20", path)).exists() {
+        if Path::new(&format!("{}/clang-21", path)).exists() {
             return Ok(());
         };
     }
@@ -59,9 +59,9 @@ fn verify_clang_version() -> Result<()> {
         None => return Err(InstallError::CantGetClangVersion.into()),
     };
 
-    if major >= 20 {
+    if major >= 21 {
         let _ = Command::new("sudo")
-            .args(["ln", "-s", "/usr/bin/clang", "/usr/local/bin/clang-20"])
+            .args(["ln", "-s", "/usr/bin/clang", "/usr/local/bin/clang-21"])
             .spawn()?
             .wait();
 
@@ -79,13 +79,13 @@ fn verify_clangpp_version() -> Result<()> {
         return Err(InstallError::CantFindClangPP.into());
     }
 
-    if Path::new("/usr/local/bin/clang++-20").exists() {
+    if Path::new("/usr/local/bin/clang++-21").exists() {
         return Ok(());
     }
 
     // Assume that clang++ version is the same as clang (there's no reason it isn't)
     let _ = Command::new("sudo")
-        .args(["ln", "-s", "/usr/bin/clang++", "/usr/local/bin/clang++-20"])
+        .args(["ln", "-s", "/usr/bin/clang++", "/usr/local/bin/clang++-21"])
         .spawn()?
         .wait();
 
