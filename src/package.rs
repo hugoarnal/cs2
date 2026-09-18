@@ -19,6 +19,10 @@ use crate::commands::{
 const EPICLANG_REPO: &str = "git@github.com:Epitech/epiclang.git";
 const BANANA_REPO: &str = "git@github.com:Epitech/banana-coding-style-checker.git";
 
+// ?C=M;O=D allows us to get the very latest version
+// Similar to epitech-ppa-list handling
+const SORTING_OPTIONS: &str = "?C=M;O=D";
+
 // Keep the slash at the end or you get a 301 on request
 const BANANA_PPA_LINK: &str =
     "https://ppa.launchpadcontent.net/epitech/ppa/ubuntu/pool/main/b/banana-coding-style-checker/";
@@ -94,7 +98,11 @@ fn move_to_final_path(temp_path: &str, final_path: &Path) -> Result<()> {
 }
 
 fn download_html_ppa(link: &str, file: &str, final_file: &str) -> Result<(), anyhow::Error> {
-    download_file(link, file)?;
+    // Force all PPAs to be sorted by last modified
+    //
+    // Don't add slashes between links and options,
+    // ppa links should in theory already have slashes at the end
+    download_file(&format!("{}{}", link, SORTING_OPTIONS), file)?;
 
     let tar_xz_file: String;
 
