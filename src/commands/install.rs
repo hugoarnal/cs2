@@ -28,7 +28,7 @@ enum InstallError {
 
 /// if clang-21 doesn't exist, check that clang installed version is `> 21`
 /// if it is, create symlink for clang-21 in `/usr/local/bin`
-fn verify_clang_version() -> Result<()> {
+pub fn verify_clang_version() -> Result<()> {
     let possible_paths = ["/usr/bin", "/usr/local/bin"];
 
     for path in possible_paths {
@@ -73,7 +73,7 @@ fn verify_clang_version() -> Result<()> {
     Err(InstallError::IncorrectClangVersion.into())
 }
 
-fn verify_clangpp_version() -> Result<()> {
+pub fn verify_clangpp_version() -> Result<()> {
     if !Path::new("/usr/bin/clang++").exists() {
         println!("clang++ doesn't exist");
         return Err(InstallError::CantFindClangPP.into());

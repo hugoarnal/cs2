@@ -1,7 +1,10 @@
 use anyhow::{anyhow, Result};
 use std::{path::Path, process::Command, str::FromStr};
 
-use crate::package::Packages;
+use crate::{
+    commands::install::{verify_clang_version, verify_clangpp_version},
+    package::Packages,
+};
 
 /// Returns true if project needs to be rebuilt, false if it's already at the latest version
 pub fn pull_repo(path: &str, package: &str) -> Result<bool> {
@@ -62,6 +65,8 @@ fn pre_update() -> Result<()> {
 
 pub fn handler(package: &Option<String>, jobs: &String, force: bool) -> Result<()> {
     pre_update()?;
+    verify_clang_version()?;
+    verify_clangpp_version()?;
 
     if let Some(package_str) = package {
         let package = Packages::from_str(package_str)?;
